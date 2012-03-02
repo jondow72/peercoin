@@ -234,6 +234,8 @@ inline int OutputDebugStringF(const char* pszFormat, ...)
         if (fileout)
         {
             static bool fStartedNewLine = true;
+            static boost::mutex mutexDebugLog;
+            boost::mutex::scoped_lock scoped_lock(mutexDebugLog);
 
             // This routine may be called by global destructors during shutdown.
             // Since the order of destruction of static/global objects is undefined,
