@@ -56,6 +56,24 @@
 #include "shellapi.h"
 #endif
 
+#include <boost/filesystem.hpp>
+
+#ifdef WIN32
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0501
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#define WIN32_LEAN_AND_MEAN 1
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include "shlwapi.h"
+#endif
+
 namespace GUIUtil {
 
 QString dateTimeStr(const QDateTime &date)
@@ -590,6 +608,17 @@ void QRStackedWidget::onCurrentChanged(int index)
    pWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
    pWidget->adjustSize();
    adjustSize();
+}
+
+void openDebugLogfile()
+{
+    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+
+#ifdef WIN32
+    if (boost::filesystem::exists(pathDebug))
+        /* Open debug.log with the associated application */
+        ShellExecuteA((HWND)0, (LPCSTR)"open", (LPCSTR)pathDebug.string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
 }
 
 ToolTipToRichTextFilter::ToolTipToRichTextFilter(int size_threshold, QObject *parent):
