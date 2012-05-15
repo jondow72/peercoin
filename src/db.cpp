@@ -68,7 +68,8 @@ public:
 instance_of_cdbinit;
 
 
-CDB::CDB(const char *pszFile, const char* pszMode) : pdb(NULL)
+CDB::CDB(const char *pszFile, const char* pszMode) :
+    pdb(NULL), activeTxn(NULL)
 {
     int ret;
     if (pszFile == NULL)
