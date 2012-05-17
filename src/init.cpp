@@ -18,6 +18,7 @@
 
 #ifndef WIN32
 #include <signal.h>
+#define strncasecmp _strnicmp
 #endif
 
 using namespace std;
