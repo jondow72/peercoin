@@ -18,7 +18,6 @@
 
 #ifndef WIN32
 #include <signal.h>
-#define strncasecmp _strnicmp
 #endif
 
 using namespace std;
@@ -197,6 +196,7 @@ bool static InitError(const std::string &str)
 {
     uiInterface.ThreadSafeMessageBox(str, _("Magi"), CClientUIInterface::OK | CClientUIInterface::MODAL);
     return false;
+
 }
 
 bool static InitWarning(const std::string &str)
