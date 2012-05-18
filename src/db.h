@@ -80,6 +80,8 @@ public:
     void CloseDb(const std::string& strFile);
     bool RemoveDb(const std::string& strFile);
 
+    void CloseDb(const std::string& strFile);
+
     DbTxn *TxnBegin(int flags=DB_TXN_WRITE_NOSYNC)
     {
         DbTxn* ptxn = NULL;
