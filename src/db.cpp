@@ -80,6 +80,10 @@ CDB::CDB(const char *pszFile, const char* pszMode) : pdb(NULL)
     if (fCreate)
         nFlags |= DB_CREATE;
 
+    unsigned int nEnvFlags = 0;
+    if (GetBoolArg("-privdb", true))
+        nEnvFlags |= DB_PRIVATE;
+
     {
         LOCK(cs_db);
         if (!fDbEnvInit)
@@ -110,7 +114,8 @@ CDB::CDB(const char *pszFile, const char* pszMode) : pdb(NULL)
                              DB_INIT_MPOOL |
                              DB_INIT_TXN   |
                              DB_THREAD     |
-                             DB_RECOVER,
+                             DB_RECOVER    |
+                             nEnvFlags,
                              S_IRUSR | S_IWUSR);
             if (ret > 0)
                 throw runtime_error(strprintf("CDB() : error %d opening database environment", ret));
