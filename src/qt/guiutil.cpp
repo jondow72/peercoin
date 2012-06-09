@@ -73,6 +73,8 @@
 #define NOMINMAX
 #endif
 #include "shlwapi.h"
+#include "shlobj.h"
+#include "shellapi.h"
 #endif
 
 namespace GUIUtil {
