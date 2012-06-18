@@ -24,7 +24,7 @@ All of the commands should be executed in Terminal.app.. it's in
 /Applications/Utilities
 
 You need to install XCode with all the options checked so that the compiler and
-everything is available in /usr not just /Developer. XCode should be available on your OSX
+everything is available in /usr not just /Developer. XCode should be available on your OS X
 install DVD, but if not, you can get the current version from https://developer.apple.com/xcode/
 
 
