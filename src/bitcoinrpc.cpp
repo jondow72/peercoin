@@ -860,7 +860,8 @@ void ThreadRPCServer2(void* parg)
     }
 
     vnThreadsRunning[THREAD_RPCLISTENER]--;
-    io_service.run();
+    while (!fShutdown)
+        io_service.run_one();
     vnThreadsRunning[THREAD_RPCLISTENER]++;
     StopRequests();
 }
