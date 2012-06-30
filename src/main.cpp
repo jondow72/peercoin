@@ -4015,7 +4015,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as the mining thread
-    RenameThread("bitcoin [miner]");
+    RenameThread("bitcoin-miner");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
