@@ -161,6 +161,16 @@ void OptionsDialog::disableApplyButton()
     ui->applyButton->setEnabled(false);
 }
 
+void OptionsDialog::enableApplyButton()
+{
+    ui->applyButton->setEnabled(true);
+}
+
+void OptionsDialog::disableApplyButton()
+{
+    ui->applyButton->setEnabled(false);
+}
+
 void OptionsDialog::enableSaveButtons()
 {
     /* prevent enabling of the save buttons when data modified, if there is an invalid proxy address present */
