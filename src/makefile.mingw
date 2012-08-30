@@ -8,6 +8,7 @@ CXX ?= g++
 
 USE_UPNP:=-
 USE_IPV6:=1
+USE_LEVELDB:=1
 
 #DEPSDIR?=/usr/local
 #BOOST_SUFFIX?=-mgw49-mt-s-1_58
@@ -123,6 +124,18 @@ DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
 
 #leveldb/libleveldb.a:
 #    cd leveldb && $(MAKE) CC=$(CC) CXX=$(CXX) OPT="$(CFLAGS)" TARGET_OS=NATIVE_WINDOWS libleveldb.a libmemenv.a && cd ..
+
+#
+# LevelDB support
+#
+ifdef USE_LEVELDB
+LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/include) -DUSE_LEVELDB
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
+leveldb/libleveldb.a:
+    cd leveldb; make libleveldb.a libmemenv.a; cd ..
+obj/db.o: leveldb/libleveldb.lib
+endif
 
 obj/%.o: %.cpp $(HEADERS)
 	g++ -c $(CFLAGS) -o $@ $<
