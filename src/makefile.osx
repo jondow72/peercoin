@@ -146,6 +146,9 @@ OBJS += obj/txdb.o
 leveldb/libleveldb.a:
 	@echo "Building LevelDB ..." && cd leveldb && $(MAKE) CC=$(CC) CXX=$(CXX) OPT="$(CFLAGS)" libleveldb.a libmemenv.a && cd ..
 
+test check: test_bitcoin FORCE
+	./test_bitcoin
+
 # auto-generated dependencies:
 -include obj/*.P
 -include obj-test/*.P

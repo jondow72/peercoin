@@ -173,6 +173,9 @@ obj/txdb.o: leveldb/libleveldb.a
 test check: test_magi FORCE
 	./test_magi
 
+test check: test_bitcoin FORCE
+	./test_bitcoin
+
 # auto-generated dependencies:
 -include obj/*.P
 -include obj-test/*.P
