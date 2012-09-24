@@ -2809,6 +2809,14 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 
 
+static bool NodeRecentlyStarted()
+{
+    extern int64 nTimeNodeStart;
+    int64 timediff = GetTime() - nTimeNodeStart;
+
+    return (timediff < (2 * 60 * 60));
+}
+
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
@@ -2914,6 +2922,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 addrman.Good(addrFrom);
             }
         }
+
+        // Trigger download of remote node's memory pool
+        if (!IsInitialBlockDownload() && !pfrom->fInbound &&
+            !pfrom->fClient && NodeRecentlyStarted() &&
+            pfrom->nVersion >= MEMPOOL_GD_VERSION)
+            pfrom->PushMessage("mempool");
 
         // Ask the first connected node for block updates
         static int nAskedForBlocks = 0;
