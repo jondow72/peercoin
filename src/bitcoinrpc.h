@@ -66,6 +66,17 @@ enum RPCErrorCode
     RPC_WALLET_ALREADY_UNLOCKED     = -17, // Wallet is already unlocked
 };
 
+// HTTP status codes
+enum HTTPStatusCode
+{
+    HTTP_OK                    = 200,
+    HTTP_BAD_REQUEST           = 400,
+    HTTP_UNAUTHORIZED          = 401,
+    HTTP_FORBIDDEN             = 403,
+    HTTP_NOT_FOUND             = 404,
+    HTTP_INTERNAL_SERVER_ERROR = 500,
+};
+
 // Bitcoin RPC error codes
 enum RPCErrorCode
 {
