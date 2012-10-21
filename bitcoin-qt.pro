@@ -215,7 +215,6 @@ HEADERS += \
     src/net.h \
     src/key.h \
     src/db.h \
-    src/txdb.h \
     src/walletdb.h \
     src/script.h \
     src/init.h \
