@@ -235,4 +235,4 @@ private slots:
     void updateMintingWeights();
 };
 
-#endif
+#endif // BITCOINGUI_H
