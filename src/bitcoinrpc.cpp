@@ -204,6 +204,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getconnectioncount",     &getconnectioncount,     true,   false },
     { "getpeerinfo",            &getpeerinfo,            true,   false },
     { "addnode",                &addnode,                true,   true },
+    { "getaddednodeinfo",       &getaddednodeinfo,       true,   true },
     { "getdifficulty",          &getdifficulty,          true,   false },
     { "getdifficultym",         &getdifficultym,         true,   false },
     { "getnetworkhashps",       &getnetworkhashps,       true,   false },
@@ -1205,6 +1206,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     // Special case non-string parameter types
     //
     if (strMethod == "stop"                   && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
