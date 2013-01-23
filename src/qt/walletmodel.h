@@ -183,5 +183,4 @@ signals:
     void error(const QString &title, const QString &message, bool modal);
 };
 
-
 #endif // WALLETMODEL_H

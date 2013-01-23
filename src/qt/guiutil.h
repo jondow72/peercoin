@@ -9,6 +9,8 @@
 #include <QNetworkReply>
 #include <QStackedWidget>
 
+class SendCoinsRecipient;
+
 QT_BEGIN_NAMESPACE
 class QFont;
 class QLineEdit;
@@ -17,7 +19,6 @@ class QDateTime;
 class QUrl;
 class QAbstractItemView;
 QT_END_NAMESPACE
-class SendCoinsRecipient;
 
 /** Utility functions used by the Bitcoin Qt UI.
  */
