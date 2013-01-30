@@ -454,6 +454,8 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
 !windows:!macx {
     DEFINES += LINUX
     LIBS += -lrt
+    # _FILE_OFFSET_BITS=64 lets 32-bit fopen transparently support large files.
+    DEFINES += _FILE_OFFSET_BITS=64
 }
 
 macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
