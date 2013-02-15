@@ -24,7 +24,7 @@ script: |
   cd $HOME/qt
   unzip ../build/qt-win32-4.7.4-gitian.zip
   cd $HOME/build/
-  export PATH=$PATH:$HOME/qt/bin/
+  export PATH=$HOME/qt/bin/:$PATH
   #
   mkdir boost_1_47_0
   cd boost_1_47_0
