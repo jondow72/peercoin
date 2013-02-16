@@ -46,7 +46,10 @@ int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalE
 // Get time weight using supplied timestamps
 int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd);
 
+// Get stake modifier checksum
+unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex);
+
 // Check stake modifier hard checkpoints
-bool CheckStakeModifierCheckpoints(int nHeight, uint64 nStakeModifier);
+bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierChecksum);
 
 #endif // PPCOIN_KERNEL_H
