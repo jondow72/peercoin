@@ -43,6 +43,10 @@ qt-builds/version-og/Magi-Qt.app
 Makefile.test
 magi-qt_test
 
+# Unit-tests
+Makefile.test
+bitcoin-qt_test
+
 # Resources cpp
 qrc_*.cpp
 qt-builds/version-og/qrc_*.cpp
