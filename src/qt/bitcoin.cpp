@@ -11,6 +11,7 @@
 #include "guiutil.h"
 #include "guiconstants.h"
 #include "init.h"
+#include "util.h"
 #include "ui_interface.h"
 #include "qtipcserver.h"
 
@@ -240,9 +241,10 @@ int main(int argc, char *argv[])
         if (GUIUtil::GetStartOnSystemStartup())
             GUIUtil::SetStartOnSystemStartup(true);
 
+        boost::thread_group threadGroup;
         BitcoinGUI window;
         guiref = &window;
-        if(AppInit2())
+        if(AppInit2(threadGroup))
         {
             {
                 // Put this in a block, so that the Model objects are cleaned up before
@@ -282,6 +284,8 @@ int main(int argc, char *argv[])
             }
             // Shutdown the core and its threads, but don't exit magi-qt here
             Shutdown(NULL);
+            threadGroup.interrupt_all();
+            threadGroup.join_all();
         }
         else
         {
