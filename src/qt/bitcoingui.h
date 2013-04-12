@@ -99,7 +99,6 @@ private:
     QAction *receiveCoinsAction;
     QAction *optionsAction;
     QAction *toggleHideAction;
-    QAction *exportAction;
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
