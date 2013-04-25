@@ -96,6 +96,7 @@ extern CAddress addrSeenByPeerIpv4;
 extern CAddress addrSeenByPeerIpv6;
 extern boost::array<int, THREAD_MAX> vnThreadsRunning;
 extern CAddrMan addrman;
+extern int nMaxConnections;
 
 extern std::vector<CNode*> vNodes;
 extern CCriticalSection cs_vNodes;
