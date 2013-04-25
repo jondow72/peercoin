@@ -1,11 +1,11 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="gu_IN" version="2.0">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="se" version="2.0">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
         <source>About Bitcoin</source>
-        <translation>બીટકોઈન વિષે</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location line="+39"/>
