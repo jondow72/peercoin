@@ -987,6 +987,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (!CheckDiskSpace())
         return false;
 
+    if (!strErrors.str().empty())
+        return InitError(strErrors.str());
+
     RandAddSeedPerfmon();
 
     //// debug print
@@ -1008,9 +1011,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage(_("Done loading"));
-
-    if (!strErrors.str().empty())
-        return InitError(strErrors.str());
 
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
