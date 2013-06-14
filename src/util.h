@@ -21,6 +21,7 @@ typedef int pid_t; /* define for Windows compatibility */
 #include <string>
 #include <cstdarg>
 
+#include <boost/version.hpp>
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
