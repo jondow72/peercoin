@@ -110,6 +110,11 @@ void WalletFrame::encryptWallet(bool status)
     walletStack->encryptWallet(status);
 }
 
+void WalletFrame::decryptForMinting(bool status)
+{
+    walletStack->decryptForMinting(status);
+}
+
 void WalletFrame::backupWallet()
 {
     walletStack->backupWallet();
