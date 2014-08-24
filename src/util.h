@@ -174,6 +174,10 @@ extern bool fReopenDebugLog;
 extern bool fTestNetWeightV2;
 extern bool fUseFastIndex;
 
+#ifdef TESTING
+extern int64 nTimeShift;
+#endif
+
 void RandAddSeed();
 void RandAddSeedPerfmon();
 int ATTR_WARN_PRINTF(1,2) OutputDebugStringF(const char* pszFormat, ...);

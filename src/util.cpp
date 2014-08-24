@@ -100,6 +100,11 @@ const char *feedbackUrl = "http://www.m-core.org/feedback";
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
+
+#ifdef TESTING
+int64 nTimeShift = 0;
+#endif
+
 void locking_callback(int mode, int i, const char* file, int line)
 {
     if (mode & CRYPTO_LOCK) {
@@ -1365,7 +1370,11 @@ int64 GetTime()
 {
     if (nMockTime) return nMockTime;
 
+#ifdef TESTING
+    return time(NULL) + nTimeShift;
+#else
     return time(NULL);
+#endif
 }
 
 void SetMockTime(int64 nMockTimeIn)
