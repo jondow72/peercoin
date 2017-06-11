@@ -195,6 +195,8 @@ HEADERS += \
     src/qt/coincontroldialog.h \
     src/qt/coincontroltreewidget.h \
     src/qt/sendcoinsdialog.h \
+    src/qt/coincontroldialog.h \
+    src/qt/coincontroltreewidget.h \
     src/qt/addressbookpage.h \
     src/qt/signverifymessagedialog.h \
     src/qt/editaddressdialog.h \
@@ -203,6 +205,7 @@ HEADERS += \
     src/base58.h \
     src/bignum.h \
     src/checkpoints.h \
+    src/coincontrol.h \
     src/compat.h \
     src/coincontrol.h \
     src/sync.h \
@@ -357,6 +360,7 @@ FORMS += \
     src/qt/forms/overviewpage.ui \
     src/qt/forms/sendcoinsentry.ui \
     src/qt/forms/askpassphrasedialog.ui \
+    src/qt/forms/coincontroldialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
     src/qt/forms/console.ui \

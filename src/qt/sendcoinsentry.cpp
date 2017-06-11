@@ -75,6 +75,8 @@ void SendCoinsEntry::setModel(WalletModel *model)
 		
 		connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
 
+    connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
+
     clear();
 }
 
