@@ -1063,6 +1063,7 @@ void ThreadSocketHandler2(void* parg)
                     SocketSendData(pnode);
             }
 
+#ifndef TESTING
             //
             // Inactivity checking
             //
@@ -1086,6 +1087,7 @@ void ThreadSocketHandler2(void* parg)
                     pnode->fDisconnect = true;
                 }
             }
+#endif
         }
         {
             LOCK(cs_vNodes);
