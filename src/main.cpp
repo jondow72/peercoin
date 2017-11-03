@@ -4542,6 +4542,8 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         }
         strMintWarning = "";
 
+        if (GetBoolArg("-nominting"))
+            return;
         //
         // Create new block
         //
