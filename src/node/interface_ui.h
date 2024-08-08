@@ -6,9 +6,10 @@
 #ifndef BITCOIN_NODE_INTERFACE_UI_H
 #define BITCOIN_NODE_INTERFACE_UI_H
 
+#include <cstdint>
 #include <functional>
-#include <memory>
 #include <string>
+#include <vector>
 #include <util/ui_change_type.h>
 
 class CBlockIndex;
