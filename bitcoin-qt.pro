@@ -117,13 +117,13 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 INCLUDEPATH += src/leveldb/include src/leveldb/helpers
 LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
 SOURCES += src/txdb.cpp \
-    src/qt/magi.cpp \
-    src/qt/magiaddressvalidator.cpp \
-    src/qt/magiamountfield.cpp \
-    src/qt/magigui.cpp \
-    src/qt/magistrings.cpp \
-    src/qt/magiunits.cpp \
-    src/magirpc.cpp \
+    src/qt/bitcoin.cpp \
+    src/qt/bitcoinaddressvalidator.cpp \
+    src/qt/bitcoinamountfield.cpp \
+    src/qt/bitcoingui.cpp \
+    src/qt/bitcoinstrings.cpp \
+    src/qt/bitcoinunits.cpp \
+    src/bitcoinrpc.cpp \
     src/clientversion.cpp \
     src/qt/utilitydialog.cpp
 !win32 {
@@ -261,11 +261,11 @@ HEADERS += \
     src/hash/sph_sha2.h \
     src/hash/sph_tiger.h \
     src/hash/sph_whirlpool.h \
-    src/qt/magiaddressvalidator.h \
-    src/qt/magiamountfield.h \
-    src/qt/magigui.h \
-    src/qt/magiunits.h \
-    src/magirpc.h \
+    src/qt/bitcoinaddressvalidator.h \
+    src/qt/bitcoinamountfield.h \
+    src/qt/bitcoingui.h \
+    src/qt/bitcoinunits.h \
+    src/bitcoinrpc.h \
     src/qt/utilitydialog.h
 
 SOURCES += \
@@ -336,7 +336,7 @@ SOURCES += \
     src/hash/whirlpool.cpp
 
 RESOURCES += \
-    src/qt/magi.qrc
+    src/qt/bitcoin.qrc
 
 FORMS += \
     src/qt/forms/coincontroldialog.ui \
@@ -392,7 +392,7 @@ QMAKE_EXTRA_COMPILERS += TSQM
 OTHER_FILES += README.md \
     doc/*.rst \
     doc/*.txt doc/README \
-    src/qt/res/magi-qt.rc \
+    src/qt/res/bitcoin-qt.rc \
     src/test/*.cpp \
     src/test/*.h \
     src/qt/test/*.cpp \
@@ -429,7 +429,7 @@ isEmpty(BOOST_INCLUDE_PATH) {
 }
 
 windows:DEFINES += WIN32
-windows:RC_FILE = src/qt/res/magi-qt.rc
+windows:RC_FILE = src/qt/res/bitcoin-qt.rc
 
 windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     # At least qmake's win32-g++-cross profile is missing the -lmingwthrd
