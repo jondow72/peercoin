@@ -31,7 +31,7 @@
         </sizepolicy>
        </property>
        <property name="pixmap">
-        <pixmap resource="../magi.qrc">:/images/about</pixmap>
+        <pixmap resource="../bitcoin.qrc">:/images/about</pixmap>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -162,7 +162,7 @@ Copyright © 2014-2017 Magi Developers
   </layout>
  </widget>
  <resources>
-  <include location="../magi.qrc"/>
+  <include location="../bitcoin.qrc"/>
  </resources>
  <connections>
   <connection>

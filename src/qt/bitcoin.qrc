@@ -183,8 +183,8 @@
         <file alias="RobotoCondensed-Regular">res/fonts/RobotoCondensed-Regular.ttf</file>
     </qresource>
     <qresource prefix="/styles">
-        <file alias="magi.qss">res/styles/magi.qss</file>
-        <file alias="magi-qt5.2.qss">res/styles/magi-qt5.2.qss</file>
-        <file alias="magi-osx.qss">res/styles/magi-osx.qss</file>
+        <file alias="bitcoin.qss">res/styles/bitcoin.qss</file>
+        <file alias="bitcoin-qt5.2.qss">res/styles/bitcoin-qt5.2.qss</file>
+        <file alias="bitcoin-osx.qss">res/styles/bitcoin-osx.qss</file>
     </qresource>
 </RCC>
