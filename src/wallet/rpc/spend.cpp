@@ -904,7 +904,13 @@ RPCHelpMan signrawtransactionwithwallet()
             "       \"SINGLE\"\n"
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
-            "       \"SINGLE|ANYONECANPAY\""},
+            "       \"SINGLE|ANYONECANPAY\""
+            "       \"ALL|ANYPREVOUT\"\n"
+            "       \"NONE|ANYPREVOUT\"\n"
+            "       \"SINGLE|ANYPREVOUT\"\n"
+            "       \"ALL|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"NONE|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"SINGLE|ANYPREVOUTANYSCRIPT\"\n"},
                 },
                 RPCResult{
                     RPCResult::Type::OBJ, "", "",
@@ -1328,7 +1334,13 @@ RPCHelpMan walletprocesspsbt()
             "       \"SINGLE\"\n"
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
-            "       \"SINGLE|ANYONECANPAY\""},
+            "       \"SINGLE|ANYONECANPAY\""
+            "       \"ALL|ANYPREVOUT\"\n"
+            "       \"NONE|ANYPREVOUT\"\n"
+            "       \"SINGLE|ANYPREVOUT\"\n"
+            "       \"ALL|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"NONE|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"SINGLE|ANYPREVOUTANYSCRIPT\"\n"},
                     {"bip32derivs", RPCArg::Type::BOOL, RPCArg::Default{true}, "Include BIP 32 derivation paths for public keys if we know them"},
                     {"finalize", RPCArg::Type::BOOL, RPCArg::Default{true}, "Also finalize inputs if possible"},
                 },

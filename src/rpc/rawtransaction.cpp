@@ -745,6 +745,12 @@ static RPCHelpMan signrawtransactionwithkey()
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
             "       \"SINGLE|ANYONECANPAY\"\n"
+            "       \"ALL|ANYPREVOUT\"\n"
+            "       \"NONE|ANYPREVOUT\"\n"
+            "       \"SINGLE|ANYPREVOUT\"\n"
+            "       \"ALL|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"NONE|ANYPREVOUTANYSCRIPT\"\n"
+            "       \"SINGLE|ANYPREVOUTANYSCRIPT\"\n"
                     },
                 },
                 RPCResult{

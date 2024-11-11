@@ -260,10 +260,16 @@ int ParseSighashString(const UniValue& sighash)
             {std::string("DEFAULT"), int(SIGHASH_DEFAULT)},
             {std::string("ALL"), int(SIGHASH_ALL)},
             {std::string("ALL|ANYONECANPAY"), int(SIGHASH_ALL|SIGHASH_ANYONECANPAY)},
+            {std::string("ALL|ANYPREVOUT"), int(SIGHASH_ALL|SIGHASH_ANYPREVOUT)},
+            {std::string("ALL|ANYPREVOUTANYSCRIPT"), int(SIGHASH_ALL|SIGHASH_ANYPREVOUTANYSCRIPT)},
             {std::string("NONE"), int(SIGHASH_NONE)},
             {std::string("NONE|ANYONECANPAY"), int(SIGHASH_NONE|SIGHASH_ANYONECANPAY)},
+            {std::string("NONE|ANYPREVOUT"), int(SIGHASH_NONE|SIGHASH_ANYPREVOUT)},
+            {std::string("NONE|ANYPREVOUTANYSCRIPT"), int(SIGHASH_NONE|SIGHASH_ANYPREVOUTANYSCRIPT)},
             {std::string("SINGLE"), int(SIGHASH_SINGLE)},
             {std::string("SINGLE|ANYONECANPAY"), int(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY)},
+            {std::string("SINGLE|ANYPREVOUT"), int(SIGHASH_SINGLE|SIGHASH_ANYPREVOUT)},
+            {std::string("SINGLE|ANYPREVOUTANYSCRIPT"), int(SIGHASH_SINGLE|SIGHASH_ANYPREVOUTANYSCRIPT)},
         };
         const std::string& strHashType = sighash.get_str();
         const auto& it = map_sighash_values.find(strHashType);
