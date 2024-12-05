@@ -31,16 +31,18 @@ public:
     /** Make field empty and ready for new input. */
     void clear();
 
-    /** Qt messes up the tab chain by default in some cases (issue http://bugreports.qt.nokia.com/browse/QTBUG-10907),
+    /** Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907),
         in these cases we have to set it up manually.
     */
     QWidget *setupTabChain(QWidget *prev);
+
+    QString text() const;
 
 signals:
     void textChanged();
 
 protected:
-    /** Intercept focus-in event and ',' keypresses */
+    /** Intercept focus-in event and ',' key presses */
     bool eventFilter(QObject *object, QEvent *event);
 
 private:
@@ -49,7 +51,6 @@ private:
     int currentUnit;
 
     void setText(const QString &text);
-    QString text() const;
 
 private slots:
     void unitChanged(int idx);
