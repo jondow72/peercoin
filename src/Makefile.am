@@ -517,7 +517,7 @@ crypto_libbitcoin_crypto_base_la_CPPFLAGS = $(AM_CPPFLAGS)
 # version can't be used on windows anyway because the library doesn't currently
 # export DLL symbols.
 crypto_libbitcoin_crypto_base_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -static
-crypto_libbitcoin_crypto_base_la_LDFLAGS = $(AM_LDFLAGS) -static
+crypto_libbitcoin_crypto_base_la_LDFLAGS = $(AM_LDFLAGS) -static -lgmp -lgmpxx -lcrypto
 
 crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/aes.cpp \
@@ -548,7 +548,25 @@ crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/sha512.cpp \
   crypto/sha512.h \
   crypto/siphash.cpp \
-  crypto/siphash.h
+  crypto/siphash.h \
+  crypto/sph_types.h \
+  crypto/sph_keccak.h \
+  crypto/sph_ripemd.h \
+  crypto/sph_sha2.h \
+  crypto/sph_tiger.h \
+  crypto/sph_whirlpool.h \
+  crypto/sph_haval.h \
+  crypto/magimath.h \
+  crypto/haval.cpp \
+  crypto/keccak.cpp \
+  crypto/magimath.cpp \
+  crypto/magimath.h \
+  crypto/ripemd.cpp \
+  crypto/sha2.cpp \
+  crypto/sha2big.cpp \
+  crypto/tiger.cpp \
+  crypto/hash_magi.h \
+  crypto/whirlpool.cpp
 
 if USE_ASM
 crypto_libbitcoin_crypto_base_la_SOURCES += crypto/sha256_sse4.cpp
