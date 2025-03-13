@@ -4,7 +4,7 @@
 
 DIST_SUBDIRS = secp256k1 univalue
 
-AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) -lgmp -lgmpxx
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
 EXTRA_LIBRARIES =
@@ -279,7 +279,25 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sha256.cpp \
   crypto/sha256.h \
   crypto/sha512.cpp \
-  crypto/sha512.h
+  crypto/sha512.h \
+  crypto/siphash.h \
+  crypto/sph_types.h \
+  crypto/sph_keccak.h \
+  crypto/sph_ripemd.h \
+  crypto/sph_sha2.h \
+  crypto/sph_tiger.h \
+  crypto/sph_whirlpool.h \
+  crypto/sph_haval.h \
+  crypto/haval.cpp \
+  crypto/keccak.cpp \
+  crypto/magimath.cpp \
+  crypto/magimath.h \
+  crypto/ripemd.cpp \
+  crypto/sha2.cpp \
+  crypto/sha2big.cpp \
+  crypto/tiger.cpp \
+  crypto/whirlpool.cpp \
+  crypto/m7m.h 
 
 if USE_ASM
 crypto_libbitcoin_crypto_a_SOURCES += crypto/sha256_sse4.cpp

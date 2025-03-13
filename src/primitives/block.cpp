@@ -10,9 +10,26 @@
 #include <utilstrencodings.h>
 #include <crypto/common.h>
 
-uint256 CBlockHeader::GetHash() const
-{
-    return SerializeHash(*this);
+#include <../chainparams.h>
+#include <../serialize.h>
+#include <../crypto/m7m.h>
+
+bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
+
+uint256 CBlockHeader::GetHash() const {
+    std::vector<unsigned char> vch;
+    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    ss << *this;
+    vch.assign(ss.begin(), ss.end());
+    if (fTestNet) {
+        return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
+    } else {
+        if (nTime < 1414330200) {
+            return hash_M7M(vch.begin(), vch.end());
+        } else {
+            return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
+        }
+    }
 }
 
 std::string CBlock::ToString() const

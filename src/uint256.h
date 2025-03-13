@@ -14,6 +14,9 @@
 #include <vector>
 #include <crypto/common.h>
 
+typedef long long  int64;
+typedef unsigned long long  uint64;
+
 /** Template base class for fixed-sized opaque blobs. */
 template<unsigned int BITS>
 class base_blob
