@@ -9,7 +9,7 @@
 #include <tinyformat.h>
 
 #include <../chainparams.h>
-#include "../crypto/hash_magi.h"
+#include "../crypto/m7m.h"
 
 bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
 
