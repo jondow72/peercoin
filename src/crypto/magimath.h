@@ -4,6 +4,8 @@
 #ifndef MAGI_MATH_H
 #define MAGI_MATH_H
 
+#include <cmath>
+
 //inline double exp_n(double xt);
 //inline double exp_n2(double x1, double x2);
 void gauleg(double x1, double x2, double x[], double w[], int n);
@@ -21,7 +23,7 @@ inline double exp_n(double xt)
     else if(xt > p3 && xt < p4)
         return (1.0 + xt);
     else
-        return exp(xt);
+        return std::exp(xt);
 }
 
 // 1 / (1 + exp(x1-x2))
@@ -32,15 +34,15 @@ inline double exp_n2(double x1, double x2)
     if (xt < p1+1.e-200)
         return 1.;
     else if (xt > p1 && xt < p2 + 1.e-200)
-        return ( 1. - exp(xt) );
+        return ( 1. - std::exp(xt) );
     else if (xt > p2 && xt < p3 + 1.e-200)
-        return ( 1. / (1. + exp(xt)) );
+        return ( 1. / (1. + std::exp(xt)) );
     else if (xt > p3 && xt < p4)
         return ( 1. / (2. + xt) );
     else if (xt > p4 - 1.e-200 && xt < p5)
-        return ( exp(-xt) / (1. + exp(-xt)) );
+        return ( std::exp(-xt) / (1. + std::exp(-xt)) );
     else if (xt > p5 - 1.e-200 && xt < p6)
-        return ( exp(-xt) );
+        return ( std::exp(-xt) );
     else if (xt > p6 - 1.e-200)
         return 0.;
 }

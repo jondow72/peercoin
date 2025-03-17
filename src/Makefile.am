@@ -516,7 +516,7 @@ crypto_libbitcoin_crypto_base_la_CPPFLAGS = $(AM_CPPFLAGS)
 # static version of this library. We don't need a dynamic version, and a dynamic
 # version can't be used on windows anyway because the library doesn't currently
 # export DLL symbols.
-crypto_libbitcoin_crypto_base_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -static
+crypto_libbitcoin_crypto_base_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -static -fpermissive
 crypto_libbitcoin_crypto_base_la_LDFLAGS = $(AM_LDFLAGS) -static -lgmp -lgmpxx -lcrypto
 
 crypto_libbitcoin_crypto_base_la_SOURCES = \
@@ -565,8 +565,8 @@ crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/sha2.cpp \
   crypto/sha2big.cpp \
   crypto/tiger.cpp \
-  crypto/hash_magi.h \
-  crypto/whirlpool.cpp
+  crypto/whirlpool.cpp \
+  crypto/m7m.h 
 
 if USE_ASM
 crypto_libbitcoin_crypto_base_la_SOURCES += crypto/sha256_sse4.cpp

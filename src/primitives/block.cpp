@@ -8,11 +8,32 @@
 #include <hash.h>
 #include <tinyformat.h>
 
+#include <../chainparams.h>
+#include "../crypto/hash_magi.h"
+
+bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
+
+#define BEGIN(a)            ((char*)&(a))
+#define END(a)              ((char*)&((&(a))[1]))
+
 uint256 CBlockHeader::GetHash() const
 {
-    CBlockHeader tmp(*this);
-    tmp.nFlags = 0;
-    return SerializeHash(tmp);
+    if (fTestNet) {
+        return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+        /*
+        if(nTime < 1413590400) {
+            return hash_M7M(BEGIN(nVersion), END(nNonce));
+        } else {
+            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+        }
+        */
+    } else {
+        if(nTime < 1414330200) {
+            return hash_M7M(BEGIN(nVersion), END(nNonce));
+        } else {
+            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+        }
+    }
 }
 
 std::string CBlock::ToString() const

@@ -1,8 +1,12 @@
-#ifndef HASH_MAGI_H
-#define HASH_MAGI_H
+#ifndef M7M_H
+#define M7M_H
 
+#include "../uint512.h"
+#include "../uint256.h"
 #include "../arith_uint256.h"
 #include "magimath.h"
+#include <gmpxx.h>
+
 
 #include "sph_sha2.h"
 #include "sph_keccak.h" //sha3
@@ -20,6 +24,17 @@
 #else
 #define GLOBAL extern
 #endif
+
+inline void mpz_set_uint256(mpz_t r, uint256& u)
+{
+    mpz_import(r, 32 / sizeof(unsigned long), -1, sizeof(unsigned long), -1, 0, &u);
+}
+
+
+inline void mpz_set_uint512(mpz_t r, uint512& u)
+{
+    mpz_import(r, 64 / sizeof(unsigned long), -1, sizeof(unsigned long), -1, 0, &u);
+}
 
 GLOBAL sph_sha256_context     z_sha256;
 GLOBAL sph_sha512_context     z_sha512;
@@ -152,7 +167,7 @@ inline uint256 hash_M7M(const T1 pbegin, const T1 pend)
 
 for(int i=0; i < NM7M; i++)
 {
-    if(finalhash==0) finalhash = 1;
+    if (finalhash == uint256(0)) finalhash = uint256(1);
     mpz_set_uint256(bns[0],finalhash);
     mpz_add(bns[7], bns[7], bns[0]);
 
@@ -362,7 +377,7 @@ for(int i=0; i < NM7M; i++)
     mpz_add(product,product,magipi);
     mpz_add(product,product,magisw);
     
-    if(finalhash==0) finalhash = 1;
+    if (finalhash == uint256(0)) finalhash = uint256(1);
     mpz_set_uint256(bns[0],finalhash);
     mpz_add(bns[7], bns[7], bns[0]);
 
@@ -407,4 +422,4 @@ for(int i=0; i < NM7M; i++)
     return finalhash;
 }
 
-#endif // HASH_MAGI_H
+#endif // M7M_H
