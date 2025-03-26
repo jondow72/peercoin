@@ -45,7 +45,21 @@ public:
     }
 };
 
-inline bool operator==(const uint512& a, uint64_t b) { return (base_blob<512>)a == b; }
+inline bool operator==(const uint512& a, uint64_t b) {
+    const uint8_t* d = a.data();  // Access raw data of uint512
+    uint64_t lower64 = 
+        (uint64_t(d[0])      ) |
+        (uint64_t(d[1]) << 8 ) |
+        (uint64_t(d[2]) << 16) |
+        (uint64_t(d[3]) << 24) |
+        (uint64_t(d[4]) << 32) |
+        (uint64_t(d[5]) << 40) |
+        (uint64_t(d[6]) << 48) |
+        (uint64_t(d[7]) << 56);
+
+    return lower64 == b;  // Compare only the first 64 bits
+}
+
 inline bool operator==(const base_blob<512>& a, const uint512& b) { return (base_blob<512>)a == (base_blob<512>)b; }
 
 /* uint512 from const char *.
