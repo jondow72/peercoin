@@ -1,4 +1,4 @@
-packages:= openssl
+packages:= openssl gmp
 
 boost_packages = boost
 
