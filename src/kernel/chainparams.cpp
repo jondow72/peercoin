@@ -116,7 +116,7 @@ public:
         consensus.BIP34Height = 339994;
         consensus.BIP34Hash = uint256S("000000000000000237f50af4cfe8924e8693abc5bd8ae5abb95bc6d230f5953f");
         consensus.powLimit =            uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
-        consensus.bnInitialHashTarget = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 40;
+        consensus.bnInitialHashTarget = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); //  ~arith_uint256(0) >> 20;
 
         consensus.nTargetTimespan = 7 * 24 * 60 * 60;  // one week
         consensus.nStakeTargetSpacing = 10 * 60; // 10-minute block spacing
@@ -142,11 +142,11 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xe6;
-        pchMessageStart[1] = 0xe8;
-        pchMessageStart[2] = 0xe9;
-        pchMessageStart[3] = 0xe5;
-        nDefaultPort = 9901;
+        pchMessageStart[0] = 0xf0;
+        pchMessageStart[1] = 0xb9;
+        pchMessageStart[2] = 0xb3;
+        pchMessageStart[3] = 0xd6;
+        nDefaultPort = 8233;
         m_assumed_blockchain_size = 2;
 
         genesis = CreateGenesisBlock(1407209706, 1410566399, 1780637, 0x1e0fffff, 1, 0);
