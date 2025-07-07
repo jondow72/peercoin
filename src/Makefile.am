@@ -549,7 +549,7 @@ crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/sha512.h \
   crypto/siphash.cpp \
   crypto/siphash.h \
-  hash/uint256.h
+  hash/uint256.h \
   hash/sph_types.h \
   hash/sph_keccak.h \
   hash/sph_ripemd.h \

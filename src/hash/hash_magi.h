@@ -2,7 +2,7 @@
 #define HASH_MAGI_H
 
 #include "hash/uint256.h"
-#include "magimath.h"
+#include "hash/magimath.h"
 
 #include "hash/sph_sha2.h"
 #include "hash/sph_keccak.h" //sha3

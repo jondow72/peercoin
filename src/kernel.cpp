@@ -59,22 +59,7 @@ const unsigned int nProtocolV15TestSwitchTime = 1734004800; // Thu 12 Dec 12:00:
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
-    ( 0, 0x0e00670bu )
-    ( 19080, 0xad4e4d29u )
-    ( 30583, 0xdc7bf136u )
-    ( 99999, 0xf555cfd2u )
-    (219999, 0x91b7444du )
-    (336000, 0x6c3c8048u )
-    (371850, 0x9b850bdfu )
-    (407813, 0x46fe50b5u )
-    (443561, 0x114a6e38u )
-    (455470, 0x9b7af181u )
-    (479189, 0xe04fb8e0u )
-    (504051, 0x459f5a16u )
-    (589659, 0xbd02492au )
-    (714688, 0xd70a5b68u )
-    (770396, 0x565fb851u )
-    (801334, 0x90485c37u )
+    ( 0, 0xfd11f4e7 )
     ;
 
 static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
@@ -93,7 +78,6 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
     (442735, 0xe42d94feu )
     (516308, 0x04a0897au )
     (573702, 0xe69df1acu )
-    (612778, 0x6be16d62u )
     ;
 
 // Whether the given coinstake is subject to new v0.3 protocol
@@ -194,8 +178,8 @@ bool IsProtocolV15(const CBlockIndex* pindexPrev)
   if (pindexPrev->nTime < (Params().NetworkIDString() != CBaseChainParams::MAIN ? nProtocolV15TestSwitchTime : nProtocolV15SwitchTime))
       return false;
 
-  if ((Params().NetworkIDString() == CBaseChainParams::MAIN && pindexPrev->nHeight > 801330) ||
-      (Params().NetworkIDString() != CBaseChainParams::MAIN && pindexPrev->nHeight > 612775))
+  if ((Params().NetworkIDString() == CBaseChainParams::MAIN && IsSuperMajority(6, pindexPrev, 750, 1000)) ||
+      (Params().NetworkIDString() != CBaseChainParams::MAIN && IsSuperMajority(6, pindexPrev, 75, 100)))
     return true;
 
   return false;
@@ -309,6 +293,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64_t &nStake
     fGeneratedStakeModifier = false;
     if (!pindexPrev)
     {
+        printf("this is working\n");
         fGeneratedStakeModifier = true;
         return true;  // genesis block's modifier is 0
     }
