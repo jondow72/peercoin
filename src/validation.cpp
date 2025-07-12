@@ -3487,11 +3487,28 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, block.nHeight) - nCoinbaseCost) : 0))
+
+    // Get block height from CBlockIndex
+    CBlockIndex* pindex = chainActive.Tip(); // Current chain tip
+    int nHeight = 0;
+    if (pindex && pindex->GetBlockHash() == block.hashPrevBlock) {
+        nHeight = pindex->nHeight + 1; // Current block height is tip height + 1
+    } else {
+        // Lookup block index by hash
+        auto it = mapBlockIndex.find(block.GetHash());
+        if (it != mapBlockIndex.end()) {
+            nHeight = it->second->nHeight;
+        } else {
+            // Fallback: height may not be available during reindexing
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-height", "Cannot determine block height");
+        }
+    }
+
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, nHeight) - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, block.nHeight) : 0)));
+                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, nHeight) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
