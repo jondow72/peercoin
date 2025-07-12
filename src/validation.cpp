@@ -59,6 +59,7 @@
 #include <validationinterface.h>
 #include <warnings.h>
 #include <crypto/magimath.h>
+#include <uint256.h>
 
 #include <algorithm>
 #include <cassert>
@@ -3494,17 +3495,14 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (it != mapBlockIndex.end()) {
         nHeight = it->second->nHeight;
     } else {
-        // During reindexing, block index may not be available yet
-        // Fallback: Try to infer height from chainActive or prev block
-        CBlockIndex* pindexPrev = nullptr;
-        auto itPrev = mapBlockIndex.find(block.hashPrevBlock);
-        if (itPrev != mapBlockIndex.end()) {
-            pindexPrev = itPrev->second;
-            nHeight = pindexPrev->nHeight + 1;
+        // Fallback for genesis block or early reindexing
+        if (block.hashPrevBlock == uint256()) {
+            nHeight = 0; // Genesis block
         } else {
-            // If no index is available, assume genesis or early block
-            if (block.hashPrevBlock == uint256()) {
-                nHeight = 0; // Genesis block
+            // Try previous block
+            auto itPrev = mapBlockIndex.find(block.hashPrevBlock);
+            if (itPrev != mapBlockIndex.end()) {
+                nHeight = itPrev->second->nHeight + 1;
             } else {
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-height", "Cannot determine block height");
             }
