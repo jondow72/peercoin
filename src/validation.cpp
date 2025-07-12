@@ -3488,19 +3488,26 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
 
-    // Get block height from CBlockIndex
-    CBlockIndex* pindex = chainActive.Tip(); // Current chain tip
+    // Get block height from mapBlockIndex
     int nHeight = 0;
-    if (pindex && pindex->GetBlockHash() == block.hashPrevBlock) {
-        nHeight = pindex->nHeight + 1; // Current block height is tip height + 1
+    auto it = mapBlockIndex.find(block.GetHash());
+    if (it != mapBlockIndex.end()) {
+        nHeight = it->second->nHeight;
     } else {
-        // Lookup block index by hash
-        auto it = mapBlockIndex.find(block.GetHash());
-        if (it != mapBlockIndex.end()) {
-            nHeight = it->second->nHeight;
+        // During reindexing, block index may not be available yet
+        // Fallback: Try to infer height from chainActive or prev block
+        CBlockIndex* pindexPrev = nullptr;
+        auto itPrev = mapBlockIndex.find(block.hashPrevBlock);
+        if (itPrev != mapBlockIndex.end()) {
+            pindexPrev = itPrev->second;
+            nHeight = pindexPrev->nHeight + 1;
         } else {
-            // Fallback: height may not be available during reindexing
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-height", "Cannot determine block height");
+            // If no index is available, assume genesis or early block
+            if (block.hashPrevBlock == uint256()) {
+                nHeight = 0; // Genesis block
+            } else {
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-height", "Cannot determine block height");
+            }
         }
     }
 
