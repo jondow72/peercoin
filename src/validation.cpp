@@ -1438,7 +1438,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight)
     */
     if (nHeight <= 10)
     {
-        nSubsidy = 112500 * COIN;
+        nSubsidy = 112500 * COIN; // 112,500 XMG
     }
     else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) // difficulty dependent PoW-I mining
     {
@@ -1475,7 +1475,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight)
         nSubsidy = MIN_TX_FEE;
     }
 
-    return nSubsidy; // Removed + nFees to match signature
+    return nSubsidy;
 }
 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
@@ -3486,12 +3486,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
+        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, block.nHeight) - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
+                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, block.nHeight) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
