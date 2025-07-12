@@ -58,8 +58,8 @@
 #include <util/translation.h>
 #include <validationinterface.h>
 #include <warnings.h>
-#include <crypto/magimath.h>
-#include <magi.h>
+#include <crypto/magimath.h>  // For mapBlockIndex and Magi constants
+#include <magi.h>             // New include for mapBlockIndex
 
 #include <algorithm>
 #include <cassert>
