@@ -59,7 +59,6 @@
 #include <validationinterface.h>
 #include <warnings.h>
 #include <crypto/magimath.h>
-#include <uint256.h>
 
 #include <algorithm>
 #include <cassert>
