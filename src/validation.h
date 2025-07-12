@@ -45,12 +45,6 @@
 #include <utility>
 #include <vector>
 
-// Forward declaration
-class CBlockIndex;
-
-// Global block index map
-extern std::map<uint256, CBlockIndex*> mapBlockIndex;
-
 class Chainstate;
 class CBlockTreeDB;
 class CChainParams;
