@@ -4,6 +4,7 @@
 
 #include <httpserver.h>
 
+#include <deque>
 #include <chainparamsbase.h>
 #include <compat.h>
 #include <util.h>
