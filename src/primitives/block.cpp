@@ -9,31 +9,23 @@
 #include <tinyformat.h>
 
 #include <../chainparams.h>
-#include "../crypto/m7m.h"
-
-// this hurts my brain and killed the rest of my braincells
+#include <../serialize.h>
+#include <../crypto/m7m.h>
 
 bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
 
-#define BEGIN(a)            ((char*)&(a))
-#define END(a)              ((char*)&((&(a))[1]))
-
-uint256 CBlockHeader::GetHash() const
-{
-if (fTestNet) {
-        return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-        /*
-        if(nTime < 1413590400) {
-            return hash_M7M(BEGIN(nVersion), END(nNonce));
-        } else {
-            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-        }
-        */
+uint256 CBlockHeader::GetHash() const {
+    std::vector<unsigned char> vch;
+    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    ss << *this;
+    vch.assign(ss.begin(), ss.end());
+    if (fTestNet) {
+        return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
     } else {
-        if(nTime < 1414330200) {
-            return hash_M7M(BEGIN(nVersion), END(nNonce));
+        if (nTime < 1414330200) {
+            return hash_M7M(vch.begin(), vch.end());
         } else {
-            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
         }
     }
 }
