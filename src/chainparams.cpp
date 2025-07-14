@@ -50,7 +50,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTimeTx, uint32_t nTimeBlock, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Matonis 07-AUG-2012 Parallel Currencies And The Roadmap To Monetary Freedom";
+    const char* pszTimestamp = "Super fracking, Physics Today 67(8), 34 (2014); doi: 10.1063/PT.3.2480";
     const CScript genesisOutputScript = CScript();
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTimeTx, nTimeBlock, nNonce, nBits, nVersion, genesisReward);
 }
@@ -73,8 +73,8 @@ public:
         consensus.BIP16Height = 0;
         consensus.BIP34Height = 339994;
         consensus.BIP34Hash = uint256S("000000000000000237f50af4cfe8924e8693abc5bd8ae5abb95bc6d230f5953f");
-        consensus.powLimit =            uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 32;
-        consensus.bnInitialHashTarget = uint256S("0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 40;
+        consensus.powLimit =            uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
+        consensus.bnInitialHashTarget = uint256S("0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
 
         consensus.nTargetTimespan = 7 * 24 * 60 * 60;  // one week
         consensus.nStakeTargetSpacing = 10 * 60; // 10-minute block spacing
@@ -101,18 +101,18 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xe6;
-        pchMessageStart[1] = 0xe8;
-        pchMessageStart[2] = 0xe9;
-        pchMessageStart[3] = 0xe5;
+        pchMessageStart[0] = 0xf0;
+        pchMessageStart[1] = 0xb9;
+        pchMessageStart[2] = 0xb3;
+        pchMessageStart[3] = 0xd6;
         vAlertPubKey = ParseHex("04201f0f85178950503c20d5a947883dff81e727533f1f1da104755fa25275cf68c442b8ad50da3152c10a74ea621da614d3d2048ba25a14f39bfc40c41223543a");
-        nDefaultPort = 9901;
+        nDefaultPort = 8233;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1345083810, 1345084287, 2179302059u, 0x1d00ffff, 1, 0);
+        genesis = CreateGenesisBlock(1407209706, 1410566399, 1780637, 0x1e0fffff, 1, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x0000000032fe677166d54963b62a4677d8957e87c508eaa4fd7eb1c880cd27e3"));
-        assert(genesis.hashMerkleRoot == uint256S("0x3c2d8f85fab4d17aac558cc648a1a58acff0de6deb890c29985690052c5993c2"));
+        assert(consensus.hashGenesisBlock == uint256S("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc"));
+        assert(genesis.hashMerkleRoot == uint256S("0x70070d9e41ffd85685f8017fa8620fb5572ed8443822d799015d01d39e7fd4af"));
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.
@@ -143,27 +143,42 @@ public:
 
         checkpointData = {
             {
-                {     0, uint256S("0x0000000032fe677166d54963b62a4677d8957e87c508eaa4fd7eb1c880cd27e3")},
-                { 19080, uint256S("0x000000000000bca54d9ac17881f94193fd6a270c1bb21c3bf0b37f588a40dbd7")},
-                { 30583, uint256S("0xd39d1481a7eecba48932ea5913be58ad3894c7ee6d5a8ba8abeb772c66a6696e")},
-                { 99999, uint256S("0x27fd5e1de16a4270eb8c68dee2754a64da6312c7c3a0e99a7e6776246be1ee3f")},
-                {219999, uint256S("0xab0dad4b10d2370f009ed6df6effca1ba42f01d5070d6b30afeedf6463fbe7a2")},
-                {336000, uint256S("0x4d261cef6e61a5ed8325e560f1d6e36f4698853a4c7134677f47a1d1d842bdf6")},
-                {371850, uint256S("0x6b18adcb0a6e080dae85b74eee2b83fabb157bbea64fab0ed2192b2f6d5b89f3")},
-                {407813, uint256S("0x00000000000000012730b0f48bed8afbeb08164c9d63597afb082e82ea05cec9")},
-                {443561, uint256S("0xf81cea8e4e40b2cfcc13a8bd82436399c35a55df951b95e7128601c1838029ed")},
-                {455470, uint256S("0xd1472c26229f90b8589d331aa47ba9023cb953b92dce342c753e7a6b3431bf1e")},
-                {479189, uint256S("0xc9c065028b20a23fbb9627bbca5946c7497f11e1f72433d4d215c79047cf06f2")},
+                {       0, uint256S("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc")},
+                {    1999, uint256S("0x00000000221617cf173f4b7b972eb818cce4bebccf655df9b8045a1693614700")},
+                {    9999, uint256S("0x000000000068f65edd06adea78ba75ce1325c1316dc31c3c3e8a82c5a2f06bf2")},
+                {   19999, uint256S("0x985a40a8d509121d8f633e0e05e0091435d4db549d7558915c7a8a4773130ff4")},
+                {   37090, uint256S("0x3a185dbcff5271d9b75b12086c064e9596db26d96503ff84439f24e720807bb1")},
+                {   69999, uint256S("0x00000000059b68241f8482737003cd6672298dc58e48ee961f577551b74b1604")},
+                {  109999, uint256S("0xba31c8b1aca84143858c4afd1ce59d9c3e327f69d272eb1bf87fe8a5a61449f6")},
+                {  220000, uint256S("0x000000003d1f4b82ee64d28f9b05a310f374a948ba5dd81b939e1af030c17941")},
+                {  260000, uint256S("0x979d5173ad642aa0f8166c9a3c2b351de0e7ec381f2465659de31287e0fb5ad7")},
+                {  300000, uint256S("0x0000000085d96ac62f6208a3520ced06102cef49a607a2550cd4126e82091a00")},
+                {  350000, uint256S("0x000000005f2959514e33e69d8a879ddb82b0f860f0f2bba5dd4cc4c9115b20c4")},
+                {  380000, uint256S("0x000000001eafd4b5d92620f4413487c021889ed1749718373a5bd5c4fb65c798")},
+                {  400000, uint256S("0x846c39d7ae5b9f9e7c1564f75fe8ef9565cd7fee4f4791a7a599c3a4f09fc6fc")},
+                {  450000, uint256S("0xd9b19fa6d10cf25ec5f1e2dde5561feb290b109d80f63fed0ca7adb8ba336443")},
+                {  480330, uint256S("0x0000000041ae89a6138179e395d4fe4e5658a3bdfe718fdb44d6253d1229b36e")},
+                { 1420000, uint256S("0x10ba37fdea42b74a9b298fb8ab91bffa1682098e94ddfe111c322f0dbdab1192")},
+                { 1425000, uint256S("0x0000000011afc5f7f482d4b417acaff71d7cf7f7364d9edb4d1e2e3452dc4a5f")},
+                { 1430000, uint256S("0x92f609d8b0f5707c6beb52009102b8fb47e7c26ff23bba47eb1fd7a6ee003279")},
+                { 1435000, uint256S("0x0000000054e4cf2932873ba68ff9b4a947b10fcf9a21f18bffa5d8db76adc32b")},
+                { 1440000, uint256S("0x4bb183ac42416587b899cb14a9b3f1aec355122dec72ae8efa3a7a7dafcc70bc")},
+                { 1445000, uint256S("0x000000002874893a11f86d1dbd1116f81cd8731d221ba7057e82df1d17438992")},
+                { 1446000, uint256S("0x96c7a8f1ed054d8c9d1e39bb185384bdba809c2ff597f20a29811aa5016e725a")},
+                { 1446770, uint256S("0xf59259dfa788d2b4c494d375e6df345b0fa614b3356146041d1be724035da853")},
+                { 1447500, uint256S("0x28eb77df0c3c6620a39d881fcab9bb75276db881c0317ede9ac1661f52a4ebef")},
+                { 1448292, uint256S("0x000000003785a399f039e6087d48572690c07d995ec0ce6c17c374a90a3df279")},
+                { 4666656, uint256S("0x0000000053f1cf508e57d4028d9d78c8a586f1791161189438979d8a704f35ff")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data as of block c9c065028b20a23fbb9627bbca5946c7497f11e1f72433d4d215c79047cf06f2 (height 479189).
-            1580808868, // * UNIX timestamp of last known number of transactions
-            1743720,    // * total number of transactions between genesis and that timestamp
+            // Data as of block 0fc7bf7f0e830eea0bc367c76f9dcfc70d42d5625d93b056354dc23049de6e29 (height 770396).
+            1410566399, // * UNIX timestamp of last known number of transactions
+            0,    // * total number of transactions between genesis and that timestamp
                         //   (the tx=... number in the SetBestChain debug.log lines)
-            0.007407208 // * estimated number of transactions per second after that timestamp
-                        // 1743720/(1580808868-1345400356) = 0.007407208
+            0.000001 // * estimated number of transactions per second after that timestamp
+                        // 2551705/(1727128008-1345400356) = 0.006684622
         };
     }
 };
