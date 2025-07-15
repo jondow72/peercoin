@@ -11,7 +11,7 @@
 #include <crypto/common.h>
 
 #include <../chainparams.h>
-#include <../crypto/m7m.h>
+#include <../crypto/hash_magi.h>
 
 bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
 
