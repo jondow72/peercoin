@@ -167,7 +167,7 @@ inline uint256 hash_M7M(const T1 pbegin, const T1 pend)
 
 for(int i=0; i < NM7M; i++)
 {
-    if (finalhash == uint256(0)) finalhash = uint256(1);
+    if(finalhash==0) finalhash = 1;
     mpz_set_uint256(bns[0],finalhash);
     mpz_add(bns[7], bns[7], bns[0]);
 
@@ -377,7 +377,7 @@ for(int i=0; i < NM7M; i++)
     mpz_add(product,product,magipi);
     mpz_add(product,product,magisw);
     
-    if (finalhash == uint256(0)) finalhash = uint256(1);
+    if(finalhash==0) finalhash = 1;
     mpz_set_uint256(bns[0],finalhash);
     mpz_add(bns[7], bns[7], bns[0]);
 
