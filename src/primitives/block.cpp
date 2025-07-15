@@ -11,23 +11,21 @@
 #include <crypto/common.h>
 
 #include <../chainparams.h>
-#include <../serialize.h>
 #include <../crypto/m7m.h>
 
 bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
 
+#define BEGIN(a) ((char*)&(a))
+#define END(a)   ((char*)&((&(a))[1]))
+
 uint256 CBlockHeader::GetHash() const {
-    std::vector<unsigned char> vch;
-    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
-    ss << *this;
-    vch.assign(ss.begin(), ss.end());
     if (fTestNet) {
-        return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
+        return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
     } else {
         if (nTime < 1414330200) {
-            return hash_M7M(vch.begin(), vch.end());
+            return hash_M7M(BEGIN(nVersion), END(nNonce));
         } else {
-            return hash_M7M_v2(vch.begin(), vch.end(), nNonce);
+            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
         }
     }
 }
