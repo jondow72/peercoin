@@ -8,39 +8,30 @@
 #include <hash.h>
 #include <tinyformat.h>
 
-#include <../chainparams.h>
-#include "../crypto/m7m.h"
+#include <../util/system.h>
+#include <../crypto/m7m.h>
 
-// this hurts my brain and killed the rest of my braincells
+#ifndef BEGIN
+#define BEGIN(a) ((char*)&(a))
+#define END(a)   ((char*)&((&(a))[1]))
+#endif
 
-// bool fTestNet = Params().NetworkIDString() == CBaseChainParams::TESTNET;
-
-#define BEGIN(a)            ((char*)&(a))
-#define END(a)              ((char*)&((&(a))[1]))
-
-uint256 CBlockHeader::GetHash() const
-{
-    // if (fTestNet) {
-    // THIS SHOULD BE HASH_M7M_V2 !! UPDATE LATER
-        return hash_M7M(BEGIN(nVersion), END(nNonce));
-        /*
-        if(nTime < 1413590400) {
-            return hash_M7M(BEGIN(nVersion), END(nNonce));
+uint256 CBlockHeader::GetHash() const {
+    CBlockHeader tmp(*this);
+    tmp.nFlags = 0;
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) {
+        return hash_M7M_v2(BEGIN(tmp.nVersion), END(tmp.nNonce), nNonce);
+    } else {
+        if (nTime < 1414330200) {
+            return hash_M7M(BEGIN(tmp.nVersion), END(tmp.nNonce));
         } else {
-            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            return hash_M7M_v2(BEGIN(tmp.nVersion), END(tmp.nNonce), nNonce);
         }
-        */
-    // } else {
-    //     if(nTime < 1414330200) {
-    //         return hash_M7M(BEGIN(nVersion), END(nNonce));
-    //     } else {
-    //         return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-    //     }
-    // }
+    }
 }
 
-std::string CBlock::ToString() const
-{
+std::string CBlock::ToString() const {
     std::stringstream s;
     s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, nFlags=%08x, vtx=%u)\n",
         GetHash().ToString(),
