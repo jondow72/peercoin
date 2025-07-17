@@ -1384,7 +1384,107 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
-int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
+#define M7Mv2_SCALE 2.545
+#define PRM_MAGI_POW_HEIGHT_V2 50000
+#define END_MAGI_POW_HEIGHT_V2 5000000
+#define BLOCK_REWARD_ADJT 2700
+#define BLOCK_REWARD_ADJT_M7M_V2 32750
+static bool fDebugMagi = false;
+
+double GetDifficultyFromBits(unsigned int nBits) {
+    int nShift = (nBits >> 24) & 0xff;
+    double dDiff = (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+    while (nShift < 29) {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29) {
+        dDiff /= 256.0;
+        nShift--;
+    }
+    return dDiff;
+}
+
+int64_t GetProofOfWorkReward(int nBits, int nHeight) {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    double nDiff = GetDifficultyFromBits(nBits);
+    int64_t nSubsidy = 0;
+    
+    if (fTestNet && (nHeight % 2 == 0)) {
+        if (nHeight <= 10) {
+            nSubsidy = 100000 * COIN;
+            return nSubsidy;
+        }
+        nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
+        if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                  nHeight, nSubsidy / COIN, nDiff);
+        return nSubsidy;
+    }
+    
+    /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
+	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
+				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
+
+	Remaining coins are: 404,995 (1.65%), that includes: 
+	Coin swap: 233,319 XMG (0.93%)
+	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
+
+	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
+	Some of posts regarding the coin swap: 
+	https://bitcointalk.org/index.php?topic=821170.0
+	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
+	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
+	
+	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
+    */
+    if (nHeight <= 10 && !fTestNet) {
+        nSubsidy = 112500 * COIN;
+    } else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) {
+        // difficulty dependent PoW-I mining
+        if (nHeight <= BLOCK_REWARD_ADJT) {
+            nSubsidy = 495.05 * pow((5.55243 * (exp_n(-0.3 * nDiff / 15.762) - exp_n(-0.6 * nDiff / 15.762))) * nDiff, 0.5) / 8.61553;
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        } else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 : (2.2 + (nHeight - 2700) * 0.0000274841);
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39) - exp_n(-0.6 * nDiff / 0.39))) * nDiff, 0.5) / 1.335
+                       * exp_n2(nDiff / 0.08, nDiffcu / 0.08);
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        } else {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ((2.2 + (nHeight - 2700) * 0.0000183227)) / M7Mv2_SCALE;
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
+                       * exp_n2(nDiff / (0.08 / M7Mv2_SCALE), nDiffcu / (0.08 / M7Mv2_SCALE));
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        }
+    } else if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
+        // difficulty dependent PoW-II mining
+        double nDiffcu = log(nHeight) * 0.1;
+        nSubsidy = 50 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
+                   * exp_n2(nDiff / (0.16 / M7Mv2_SCALE), nDiffcu / (0.16 / M7Mv2_SCALE));
+        if (nSubsidy < 3) nSubsidy = 3;
+        nSubsidy *= COIN;
+        if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                  nHeight, nSubsidy / COIN, nDiff);
+//		nSubsidy = 15. * 2500. / (pow((nDiff+500.)/10., 2.));
+//		if (nSubsidy < 3) nSubsidy = 3;
+//		nSubsidy *= COIN;
+        for (int i = 525600; i <= nHeight; i += 525600) nSubsidy *= 0.93;
+    } else {
+        nSubsidy = MIN_TX_FEE;
+    }
+    return nSubsidy;
+}
+
+/*int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
     CBigNum bnTarget;
@@ -1417,7 +1517,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
         LogPrintf("%s: create=%s nBits=0x%08x nSubsidy=%lld\n", __func__, FormatMoney(nSubsidy), nBits, nSubsidy);
 
     return nSubsidy;
-}
+}*/
 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
