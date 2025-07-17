@@ -9,6 +9,12 @@
 #include <cstdlib>
 #include <stdint.h>
 
+// src/consensus/consensus.h
+static const CAmount COIN = 100000000; // Magi’s 8 decimals
+static const CAmount MIN_TX_FEE = COIN / .0001; // Adjust as needed
+static const int MAX_BLOCK_WEIGHT = 4000000; // From Peercoin, adjust if Magi differs
+static const int MAX_BLOCK_SIGOPS_COST = 80000; // Adjust if Magi differs
+
 /** The maximum allowed size for a serialized block, in bytes (only for buffer size limits) */
 static const unsigned int MAX_BLOCK_SERIALIZED_SIZE = 4000000;
 /** The maximum allowed weight for a block, see BIP 141 (network rule) */

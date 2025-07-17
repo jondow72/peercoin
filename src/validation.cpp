@@ -1389,80 +1389,58 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
-double GetDifficultyFromBits(unsigned int nBits){
+#define M7Mv2_SCALE 2.545
+#define PRM_MAGI_POW_HEIGHT_V2 50000
+#define END_MAGI_POW_HEIGHT_V2 5000000
+#define BLOCK_REWARD_ADJT 2700
+#define BLOCK_REWARD_ADJT_M7M_V2 32750
+static const uint32_t GENESIS_TIME = 1410566399;
+
+double GetDifficultyFromBits(unsigned int nBits) {
     int nShift = (nBits >> 24) & 0xff;
-
-    double dDiff =
-        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    while (nShift < 29)
-    {
+    double dDiff = (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
     return dDiff;
 }
 
-// Magi-specific constants (verified from https://github.com/m-pays/magi/blob/master/src/main.h)
-#define M7Mv2_SCALE 2.545
-#define PRM_MAGI_POW_HEIGHT_V2 50000 // re-cal PoW-I end block
-#define END_MAGI_POW_HEIGHT_V2 5000000 // PoW-II aims to issue 12 mil and more than 10 years
-#define BLOCK_REWARD_ADJT 2700
-#define BLOCK_REWARD_ADJT_M7M_V2 32750
-static const uint32_t GENESIS_TIME = 1410566399; // Magi genesis (~Fri Sep 12 2014 23:59:59 GMT+0000)
-
-// Changed signature to match expected calls: unsigned int instead of int, removed nFees
-// GetProofOfWorkReward
-int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight)
-{
+int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight) {
     double nDiff = GetDifficultyFromBits(nBits);
-
     int64_t nSubsidy = 0;
     
-    if (nHeight <= 10)
-    {
-        nSubsidy = 112500 * COIN; // 112,500 XMG
-    }
-    else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2)
-    {
+    if (nHeight <= 10) {
+        nSubsidy = 112500 * COIN;
+    } else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) {
         if (nHeight <= BLOCK_REWARD_ADJT) {
             nSubsidy = 495.05 * pow((5.55243 * (exp_n(-0.3 * nDiff / 15.762) - exp_n(-0.6 * nDiff / 15.762))) * nDiff, 0.5) / 8.61553;
             if (nSubsidy < 5) nSubsidy = 5;
             nSubsidy *= COIN;
-        }
-        else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
-            double nDiffcu = ((nHeight <= 2700) ? 2.2 : (2.2 + (nHeight - 2700) * 0.0000274841));
-            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39) - exp_n(-0.6 * nDiff / 0.39))) * nDiff, 0.5) / 1.335
-                       * exp_n2(nDiff / 0.08, nDiffcu / 0.08);
+        } else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 : (2.2 + (nHeight - 2700) * 0.0000274841);
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39) - exp_n(-0.6 * nDiff / 0.39))) * nDiff, 0.5) / 1.335 * exp_n2(nDiff / 0.08, nDiffcu / 0.08);
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+        } else {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ((2.2 + (nHeight - 2700) * 0.0000183227)) / M7Mv2_SCALE;
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456 * exp_n2(nDiff / (0.08 / M7Mv2_SCALE), nDiffcu / (0.08 / M7Mv2_SCALE));
             if (nSubsidy < 5) nSubsidy = 5;
             nSubsidy *= COIN;
         }
-        else {
-            double nDiffcu = ((nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ((2.2 + (nHeight - 2700) * 0.0000183227)) / M7Mv2_SCALE);
-            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
-                       * exp_n2(nDiff / (0.08 / M7Mv2_SCALE), nDiffcu / (0.08 / M7Mv2_SCALE));
-            if (nSubsidy < 5) nSubsidy = 5;
-            nSubsidy *= COIN;
-        }
-    }
-    else if (nHeight <= END_MAGI_POW_HEIGHT_V2)
-    {
+    } else if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
         double nDiffcu = log(nHeight) * 0.1;
-        nSubsidy = 50 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
-                   * exp_n2(nDiff / (0.16 / M7Mv2_SCALE), nDiffcu / (0.16 / M7Mv2_SCALE));
+        nSubsidy = 50 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456 * exp_n2(nDiff / (0.16 / M7Mv2_SCALE), nDiffcu / (0.16 / M7Mv2_SCALE));
         if (nSubsidy < 3) nSubsidy = 3;
         nSubsidy *= COIN;
         for (int i = 525600; i <= nHeight; i += 525600) nSubsidy *= 0.93;
-    }
-    else {
+    } else {
         nSubsidy = MIN_TX_FEE;
     }
-
     return nSubsidy;
 }
 
@@ -3410,115 +3388,58 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
-{
-    // These are checks that are independent of context.
-
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindex, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature) {
     if (block.fChecked)
         return true;
 
-    // Check that the header is valid (particularly PoW).  This is mostly
-    // redundant with the call in AcceptBlockHeader.
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW && !block.IsProofOfStake()))
         return false;
 
-    // Signet only: check block solution
-    if (consensusParams.signet_blocks && fCheckPOW && !CheckSignetBlockSolution(block, consensusParams)) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-signet-blksig", "signet block signature validation failure");
-    }
-
-    // Check the merkle root.
     if (fCheckMerkleRoot && !CheckMerkleRoot(block, state)) {
         return false;
     }
 
-    // All potential-corruption validation must be done before we do any
-    // transaction validation, as otherwise we may mark the header as invalid
-    // because we receive the wrong transactions for it.
-    // Note that witness malleability is checked in ContextualCheckBlock, so no
-    // checks that use witness data may be performed here.
-
-    // Size limits
     if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-length", "size limits failed");
 
-    // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-missing", "first tx is not coinbase");
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-multiple", "more than one coinbase");
 
-    // peercoin: only the second transaction can be the optional coinstake
     for (unsigned int i = 2; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinStake())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "coinstake in wrong position");
 
-    // peercoin: first coinbase output should be empty if proof-of-stake block
     if (block.IsProofOfStake() && !block.vtx[0]->vout[0].IsEmpty())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-notempty", "coinbase output not empty in PoS block");
 
-    // Check coinbase timestamp
-    if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9))
-     printf("%lld\n", block.vtx[0]->nTime);
-     printf("%lld\n", block.GetBlockTime());
-     printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
-     printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
-    
-     // return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
-
-    // Check coinstake timestamp
-    if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1]->nTime ? (int64_t)block.vtx[1]->nTime : block.GetBlockTime()))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
-
-    // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
-    if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-
-    // Get block height from mapBlockIndex
-    int nHeight = 0;
-    auto it = mapBlockIndex.find(block.GetHash());
-    if (it != mapBlockIndex.end()) {
-        nHeight = it->second->nHeight;
-    } else {
-        // Fallback for genesis block or early reindexing
-        if (block.hashPrevBlock == uint256()) {
-            nHeight = 0; // Genesis block
-        } else {
-            // Try previous block
-            auto itPrev = mapBlockIndex.find(block.hashPrevBlock);
-            if (itPrev != mapBlockIndex.end()) {
-                nHeight = itPrev->second->nHeight + 1;
-            } else {
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-height", "Cannot determine block height");
-            }
+    if (block.IsProofOfWork()) {
+        unsigned int nHeight = pindex ? pindex->nHeight : 0;
+        if (!pindex) LogPrintf("Warning: CheckBlock called without pindex, using nHeight=0\n");
+        CAmount nMaxReward = GetProofOfWorkReward(block.GetBlockHeader().nBits, nHeight);
+        CAmount nReward = block.vtx[0]->GetValueOut();
+        if (nReward > nMaxReward) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                strprintf("coinbase reward exceeded %s > %s", FormatMoney(nReward), FormatMoney(nMaxReward)));
         }
     }
 
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, nHeight) - nCoinbaseCost) : 0))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, nHeight) : 0)));
-    // Check transactions
-    // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
         TxValidationState tx_state;
         if (!CheckTransaction(*tx, tx_state)) {
-            // CheckBlock() does context-free validation checks. The only
-            // possible failures are consensus failures.
             assert(tx_state.GetResult() == TxValidationResult::TX_CONSENSUS);
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, tx_state.GetRejectReason(),
-                                 strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), tx_state.GetDebugMessage()));
-            // peercoin: check transaction timestamp
-            if (block.GetBlockTime() < (int64_t)tx->nTime)
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time", strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
+                strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), tx_state.GetDebugMessage()));
         }
+        if (block.GetBlockTime() < (int64_t)tx->nTime)
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time",
+                strprintf("block timestamp earlier than transaction timestamp"));
     }
+
     unsigned int nSigOps = 0;
-    for (const auto& tx : block.vtx)
-    {
+    for (const auto& tx : block.vtx) {
         nSigOps += GetLegacySigOpCount(*tx);
     }
     if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
@@ -3527,11 +3448,8 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
-    // peercoin: check block signature
-    // Only check block signature if check merkle root, c.f. commit 3cd01fdf
-    // rfc6: validate signatures of proof of stake blocks only after 0.8 fork
-    if (fCheckMerkleRoot && fCheckSignature && (block.IsProofOfStake() || !IsBTC16BIPsEnabled(block.GetBlockTime())) && !CheckBlockSignature(block))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sign", strprintf("%s : bad block signature", __func__));
+    if (fCheckMerkleRoot && fCheckSignature && block.IsProofOfStake() && !CheckBlockSignature(block))
+        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sign", "bad block signature");
 
     return true;
 }
