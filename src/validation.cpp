@@ -59,6 +59,7 @@
 #include <validationinterface.h>
 #include <warnings.h>
 #include <crypto/magimath.h>  // For mapBlockIndex and Magi constants
+#include <inttypes.h>
 
 #include <algorithm>
 #include <cassert>
@@ -1390,9 +1391,6 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 #define END_MAGI_POW_HEIGHT_V2 5000000
 #define BLOCK_REWARD_ADJT 2700
 #define BLOCK_REWARD_ADJT_M7M_V2 32750
-static const uint32_t GENESIS_TIME = 1410566399;
-static const CAmount COIN = 100000000;
-static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
 
 // Debug flag for Magi
 static bool fDebugMagi = false; // Set via -debug=magi
@@ -1411,7 +1409,7 @@ double GetDifficultyFromBits(unsigned int nBits) {
     }
     return dDiff;
 }
-
+/*
 #define BRW_BLKTIME_COEFF 0.1 // block time effect on average weight; the larger value, the less effect
 #define BRW_AVER_COEFF 0.25 // the larger value, the regular moving average
 
@@ -1590,7 +1588,7 @@ int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fL
     if (IsChainInSwitch(pindex0)) nSubsidy = (double)nSubsidy / 25.;
     return nSubsidy + nFees;
 }
-
+*/
 #define M7Mv2_SCALE 2.545
 int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees) {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
@@ -1670,7 +1668,7 @@ int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees) {
     }
     return nSubsidy + nFees;
 }
-
+/*
 double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit=20000.;
@@ -1698,7 +1696,7 @@ double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pind
     if (fDebugMagiPoS) printf("@PoS-APRV2 rAPR = %f\n", rAPR);
     return rAPR;
 }
-
+*/
 /*int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
