@@ -118,14 +118,14 @@ public:
         consensus.powLimit =            uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
         consensus.bnInitialHashTarget = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); //  ~arith_uint256(0) >> 20;
 
-        consensus.nTargetTimespan = 7 * 24 * 60 * 60;  // one week
-        consensus.nStakeTargetSpacing = 10 * 60; // 10-minute block spacing
+        consensus.nTargetTimespan = 60 * 30;   // 30 min
+        consensus.nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
         consensus.nTargetSpacingWorkMax = 12 * consensus.nStakeTargetSpacing; // 2-hour
         consensus.nPowTargetSpacing = consensus.nStakeTargetSpacing;
-        consensus.nStakeMinAge = 60 * 60 * 24 * 30; // minimum age for coin age
-        consensus.nStakeMaxAge = 60 * 60 * 24 * 90;
-        consensus.nModifierInterval = 6 * 60 * 60; // Modifier interval: time to elapse before new modifier is computed
-        consensus.nCoinbaseMaturity = 500;
+        consensus.nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 8hr for block# > 1446800, or 2hr
+        consensus.nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
+        consensus.nModifierInterval = 10 * 60; // 10 min
+        consensus.nCoinbaseMaturity = 100;
 
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
@@ -162,10 +162,7 @@ public:
         // This is fine at runtime as we'll fall back to using them as an addrfetch if they don't support the
         // service bits we want, but we should get them updated to support all service bits wanted by any
         // release ASAP to avoid it where possible.
-        vSeeds.emplace_back("seed.peercoin.net");
-        vSeeds.emplace_back("seed2.peercoin.net");
-        vSeeds.emplace_back("seed.peercoin-library.org");
-        vSeeds.emplace_back("seed.ppcoin.info");
+        vSeeds.emplace_back("magi-seed.checkbug.com");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,55);  // peercoin: addresses begin with 'P'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,117); // peercoin: addresses begin with 'p'
@@ -278,10 +275,7 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("tseed.peercoin.net");
-        vSeeds.emplace_back("tseed2.peercoin.net");
-        vSeeds.emplace_back("tseed.peercoin-library.org");
-        vSeeds.emplace_back("testseed.ppcoin.info");
+        vSeeds.emplace_back("test-magi-seed.checkbug.com");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);

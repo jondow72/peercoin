@@ -5,6 +5,7 @@
 #define PEERCOIN_KERNEL_H
 
 #include <primitives/transaction.h> // CTransaction(Ref)
+#include <../crypto/magimath.h>
 
 class CBlockIndex;
 class BlockValidationState;
@@ -12,6 +13,13 @@ class CBlockHeader;
 class CBlock;
 class Chainstate;
 
+// To decrease granularity of timestamp
+// Supposed to be 2^n-1
+static const int STAKE_TIMESTAMP_MASK = 15;
+
+// MODIFIER_INTERVAL: time to elapse before new modifier is computed
+static const unsigned int MODIFIER_INTERVAL = 10 * 60; // 10 min
+extern unsigned int nModifierInterval;
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
@@ -71,5 +79,12 @@ unsigned int HowSuperMajority(int minVersion, const CBlockIndex* pstart, unsigne
 
 // peercoin: entropy bit for stake modifier if chosen by modifier
 unsigned int GetStakeEntropyBit(const CBlock& block);
+
+// Get time weight
+int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
+int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
+
+// Get time weight using supplied timestamps
+int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 #endif // PEERCOIN_KERNEL_H
