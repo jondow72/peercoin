@@ -12,15 +12,15 @@
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static constexpr CAmount COIN = 1000000;
-static constexpr CAmount CENT = 10000;
+static constexpr CAmount COIN = 100000000;
+static constexpr CAmount CENT = 1000000;
 
 static const CAmount MIN_TX_FEE_PREV7 = CENT;
-static const CAmount MIN_TX_FEE = CENT / 10;
+static const CAmount MIN_TX_FEE = CENT / .0001;
 static const CAmount PERKB_TX_FEE = CENT;
 static const CAmount MIN_TXOUT_AMOUNT = CENT;
-//static const CAmount MAX_MINT_PROOF_OF_WORK = 9999 * COIN;
-//static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
+static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
+static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
 static const std::string CURRENCY_UNIT = "PPC";
 static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
@@ -33,7 +33,7 @@ static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  * */
-static constexpr CAmount MAX_MONEY = 21000000 * COIN;
+static constexpr CAmount MAX_MONEY = 25000000 * COIN;
 inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 
 #endif // BITCOIN_CONSENSUS_AMOUNT_H
