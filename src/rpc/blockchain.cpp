@@ -5,6 +5,8 @@
 
 #include <rpc/blockchain.h>
 
+#include "magi.h"
+
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>

@@ -4,6 +4,8 @@
 
 #include <test/util/mining.h>
 
+#include "magi.h"
+
 #include <chainparams.h>
 #include <consensus/merkle.h>
 #include <key_io.h>

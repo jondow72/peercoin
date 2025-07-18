@@ -311,6 +311,19 @@ BITCOIN_CORE_H = \
   util/ui_change_type.h \
   util/vector.h \
   validation.h \
+## --- magi headers start from this line --- ##
+  magi.h \
+  hash/sph_types.h \
+  hash/sph_keccak.h \
+  hash/sph_ripemd.h \
+  hash/sph_sha2.h \
+  hash/sph_tiger.h \
+  hash/sph_whirlpool.h \
+  hash/sph_haval.h \
+  magimath.h \
+  uint512.h \
+  m7m.h \
+## --- magi headers end from this line --- ##
   validationinterface.h \
   wallet/bdb.h \
   wallet/coincontrol.h \
@@ -433,6 +446,17 @@ libbitcoin_node_a_SOURCES = \
   txorphanage.cpp \
   txrequest.cpp \
   validation.cpp \
+## --- magi cpp start from this line --- ##
+  magi.cpp \
+  magimath.cpp \
+  hash/haval.cpp \
+  hash/keccak.cpp \
+  hash/ripemd.cpp \
+  hash/sha2.cpp \
+  hash/sha2big.cpp \
+  hash/tiger.cpp \
+  hash/whirlpool.cpp \
+## --- magi cpp end from this line --- ##
   validationinterface.cpp \
   kernel.cpp \
   $(BITCOIN_CORE_H)
@@ -548,25 +572,7 @@ crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/sha512.cpp \
   crypto/sha512.h \
   crypto/siphash.cpp \
-  crypto/siphash.h \
-  crypto/sph_types.h \
-  crypto/sph_keccak.h \
-  crypto/sph_ripemd.h \
-  crypto/sph_sha2.h \
-  crypto/sph_tiger.h \
-  crypto/sph_whirlpool.h \
-  crypto/sph_haval.h \
-  crypto/magimath.h \
-  crypto/haval.cpp \
-  crypto/keccak.cpp \
-  crypto/magimath.cpp \
-  crypto/magimath.h \
-  crypto/ripemd.cpp \
-  crypto/sha2.cpp \
-  crypto/sha2big.cpp \
-  crypto/tiger.cpp \
-  crypto/whirlpool.cpp \
-  crypto/m7m.h 
+  crypto/siphash.h
 
 if USE_ASM
 crypto_libbitcoin_crypto_base_la_SOURCES += crypto/sha256_sse4.cpp

@@ -163,6 +163,13 @@ static fs::path GetPidFile(const ArgsManager& args)
     }
 }
 
+
+void SetupServerArgs() {
+    gArgs.AddArg("-debug=<category>", "Output debugging information (default: 0, supplying <category> is optional). "
+                 "If <category> is not supplied or if <category> = 1, output all debugging information. <category> can be: " +
+                 Join(GetLogCategories(), ", ") + ", magi.", true, LogCategory::ALL);
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown

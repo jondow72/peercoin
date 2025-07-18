@@ -5,6 +5,8 @@
 
 #include <node/miner.h>
 
+#include "magi.h"
+
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>

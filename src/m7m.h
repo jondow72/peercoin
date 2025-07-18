@@ -1,19 +1,19 @@
 #ifndef M7M_H
 #define M7M_H
 
-#include "../uint512.h"
-#include "../uint256.h"
-#include "../arith_uint256.h"
+#include "uint512.h"
+#include "uint256.h"
+#include "arith_uint256.h"
 #include "magimath.h"
 #include <gmpxx.h>
 
 
-#include "sph_sha2.h"
-#include "sph_keccak.h" //sha3
-#include "sph_haval.h"
-#include "sph_tiger.h"
-#include "sph_whirlpool.h"
-#include "sph_ripemd.h"
+#include "hash/sph_sha2.h"
+#include "hash/sph_keccak.h" //sha3
+#include "hash/sph_haval.h"
+#include "hash/sph_tiger.h"
+#include "hash/sph_whirlpool.h"
+#include "hash/sph_ripemd.h"
 
 #ifndef QT_NO_DEBUG
 #include <string>
