@@ -12,14 +12,14 @@
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static constexpr CAmount COIN = 1000000;
+static constexpr CAmount COIN = 100000000;
 static constexpr CAmount CENT = 10000;
 
 static const CAmount MIN_TX_FEE_PREV7 = CENT;
-static const CAmount MIN_TX_FEE = CENT / 10;
+static const CAmount MIN_TX_FEE = COIN / 10000;
 static const CAmount PERKB_TX_FEE = CENT;
 static const CAmount MIN_TXOUT_AMOUNT = CENT;
-static const CAmount MAX_MINT_PROOF_OF_WORK = 9999 * COIN;
+static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
 static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
 static const std::string CURRENCY_UNIT = "PPC";
 static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit

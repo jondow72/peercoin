@@ -5,6 +5,8 @@
 
 #include <node/miner.h>
 
+#include "magi.h"
+
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
@@ -52,6 +54,9 @@ int64_t nLastCoinStakeSearchInterval = 0;
 std::thread m_minter_thread;
 
 namespace node {
+
+  CAmount nMaxReward = GetProofOfWorkReward(block.nBits, pindex ? pindex->nHeight : 0, 0);
+
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     int64_t nOldTime = pblock->nTime;

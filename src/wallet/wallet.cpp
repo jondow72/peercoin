@@ -64,6 +64,10 @@ using interfaces::FoundBlock;
 
 namespace wallet {
 
+
+  CAmount nReward = GetProofOfStakeReward(nCoinAge, nBits, nTime, pindex);
+
+
 bool AddWalletSetting(interfaces::Chain& chain, const std::string& wallet_name)
 {
     util::SettingsValue setting_value = chain.getRwSetting("wallet");

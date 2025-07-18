@@ -311,6 +311,7 @@ BITCOIN_CORE_H = \
   util/ui_change_type.h \
   util/vector.h \
   validation.h \
+  magi.h \
   validationinterface.h \
   wallet/bdb.h \
   wallet/coincontrol.h \
@@ -433,6 +434,7 @@ libbitcoin_node_a_SOURCES = \
   txorphanage.cpp \
   txrequest.cpp \
   validation.cpp \
+  magi.cpp \
   validationinterface.cpp \
   kernel.cpp \
   $(BITCOIN_CORE_H)

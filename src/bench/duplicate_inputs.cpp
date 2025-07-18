@@ -3,6 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
+
+#include "magi.h"
+
 #include <chainparams.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>

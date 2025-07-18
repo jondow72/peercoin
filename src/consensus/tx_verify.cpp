@@ -16,6 +16,12 @@
 
 #include <util/moneystr.h>
 
+
+
+  CAmount nMaxReward = GetProofOfStakeReward(nCoinAge, nBits, nTime, pindex);
+
+
+
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
     if (tx.nLockTime == 0)

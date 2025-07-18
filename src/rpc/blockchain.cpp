@@ -5,6 +5,8 @@
 
 #include <rpc/blockchain.h>
 
+#include "magi.h"
+
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -73,6 +75,10 @@ struct CUpdatedBlock
     uint256 hash;
     int height;
 };
+
+
+  CAmount nReward = GetProofOfWorkReward(nBits, nHeight, 0);
+
 
 static GlobalMutex cs_blockchange;
 static std::condition_variable cond_blockchange;
