@@ -165,7 +165,8 @@ static bool ProcessUpnp()
     struct IGDdatas data;
     int r;
 
-    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
+    char devUuid[64]; // Buffer for device UUID
+    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr), devUuid, sizeof(devUuid));
     if (r == 1)
     {
         if (fDiscover) {
