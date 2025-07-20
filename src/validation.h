@@ -187,42 +187,6 @@ int64 GetTargetSpacingWork(int nHeight);
 int64 GetTargetSpacing(bool fProofOfStake);
 int64 GetTargetTimespan(bool fProofOfStake);
 
-extern CScript COINBASE_FLAGS;
-
-extern CCriticalSection cs_main;
-extern std::map<uint256, CBlockIndex*> mapBlockIndex;
-extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
-extern uint256 hashGenesisBlock;
-extern CBlockIndex* pindexGenesisBlock;
-extern unsigned int nStakeMinAge;
-extern int64 nStakeSplitThreshold;
-extern int64 nStakeCombineThreshold;
-//extern int64 nLastPrevMoneySupply;
-extern int nBestHeight;
-extern arith_uint256 bnBestChainTrust;
-extern arith_uint256 bnBestInvalidTrust;
-extern uint256 hashBestChain;
-extern CBlockIndex* pindexBest;
-extern unsigned int nTransactionsUpdated;
-extern uint64 nLastBlockTx;
-extern uint64 nLastBlockSize;
-extern int64 nLastCoinStakeSearchInterval;
-extern const std::string strMessageMagic;
-extern double dHashesPerSec;
-extern int64 nHPSTimerStart;
-extern int64 nTimeBestReceived;
-extern CCriticalSection cs_setpwalletRegistered;
-extern std::set<CWallet*> setpwalletRegistered;
-extern unsigned char pchMessageStart[4];
-extern std::map<uint256, CBlock*> mapOrphanBlocks;
-
-// Settings
-extern int64 nTransactionFee;
-extern int64 nMinimumInputValue;
-
-// Minimum disk space required - used in CheckDiskSpace()
-static const uint64 nMinDiskSpace = 52428800;
-
 
 class CReserveKey;
 class CTxDB;
