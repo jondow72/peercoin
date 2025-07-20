@@ -59,6 +59,10 @@
 #include <validationinterface.h>
 #include <warnings.h>
 
+#include <../crypto/m7m.h>
+#include <../crypto/magimath.h>
+#include <inttypes.h>
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -1425,7 +1429,7 @@ double GetDifficultyFromBits(unsigned int nBits){
 // diff data filter to stabilize the rewards
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
 {
-    int64 nWeightTot, nActualBlockSpacing;
+    int64_t nWeightTot, nActualBlockSpacing;
     double rDiffAverEMA, rDiffAver, rfw, rWeight;
     const CBlockIndex* pindexPrev = pindex0;
 
@@ -1455,8 +1459,8 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
     if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
     else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
 
-    rDiffAverEMA = GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * BRW_WEIGHT_SCALE));
-    nWeightTot = ((int64)(rfw*BRW_WEIGHT_SCALE));
+    rDiffAverEMA = GetDifficultyFromBits(pindexPrev->nBits) * ((int64_t)(rfw * BRW_WEIGHT_SCALE));
+    nWeightTot = ((int64_t)(rfw*BRW_WEIGHT_SCALE));
     rWeight = 1.-rfw;
     for(int i = 1; i <= BBLOCK-1; i++)
     {
@@ -1470,8 +1474,8 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
 	rfw = (1. - exp_n(-double(nActualBlockSpacing)*BRW_EXPON_COEFF*BRW_BLKTIME_COEFF/double(GetTargetSpacingWork(pindex0->nHeight+1))) ) * BRW_AVER_COEFF;
 	if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
 	else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
-	rDiffAverEMA += GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
-	nWeightTot += ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
+	rDiffAverEMA += GetDifficultyFromBits(pindexPrev->nBits) * ((int64_t)(rfw * rWeight * BRW_WEIGHT_SCALE));
+	nWeightTot += ((int64_t)(rfw * rWeight * BRW_WEIGHT_SCALE));
 	rWeight *= (1.-rfw);
     }
     rDiffAverEMA /= double(nWeightTot);
@@ -1518,7 +1522,7 @@ bool IsMaintenance(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight > HEIGHT_INIT_MAINTENANCE) && (pindex_->nHeight < HEIGHT_END_MAINTENANCE) );
 }
 
-int64 GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
+int64_t GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
 {
     int nHeight = pindex0->nHeight;
     double M7Mv2_move = ( (nHeight <= 75000) ? 2.85 : ( 2.85 - pow( log(nHeight) - log(75000.), 0.3 )*1.5 ) );
@@ -1536,7 +1540,7 @@ int64 GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
     if (rSubsidy > 50*COIN) { rSubsidy = 50*COIN; }
     else if (rSubsidy < MIN_TX_FEE) { rSubsidy = MIN_TX_FEE; }
     for(int i = 500000; i <= nHeight; i += 500000) rSubsidy *= 0.93; // yearly decline (7%)
-    return (int64)rSubsidy;
+    return (int64_t)rSubsidy;
 }
 
 bool IsChainInSwitch(const CBlockIndex* pindex_)
@@ -1554,11 +1558,11 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
 
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock)
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
     int nHeight = pindex0->nHeight;
-    int64 nSubsidy = 0;
+    int64_t nSubsidy = 0;
     
 //      double rDiff = GetDifficultyFromBitsV2(pindex0); 
 //      LogPrintf("@@BLKV2-test (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
@@ -1677,7 +1681,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
     return nSubsidy + nFees;
 }
 
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
+double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit=20000.;
     rAPR = rMaxAPR * ( ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) 
@@ -1685,7 +1689,7 @@ double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR)
+double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit=20000.;
 //    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
@@ -1745,7 +1749,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 */
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
+int64_t GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
 {
     int64 nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
