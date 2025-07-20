@@ -1559,7 +1559,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
 
-int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, uint32_t nTime, bool fLastBlock)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
@@ -1574,7 +1574,7 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 //        if (nHeight%2 == 0) nSubsidy = 1000 * COIN;
 //        else nSubsidy = GetProofOfWorkReward_OPM(pindex0);
         nSubsidy = 1000 * COIN;
-        return nSubsidy + nFees;
+        return nSubsidy + nTime;
     }
 
     if (nHeight <= END_MAGI_POW_HEIGHT_V2) {    // difficulty dependent PoW-II mining
@@ -1589,11 +1589,11 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
       nHeight, rDiff, double(nSubsidy)/double(COIN));
     }
     if (IsChainInSwitch(pindex0)) nSubsidy = (double)nSubsidy / 25.;
-    return nSubsidy + nFees;
+    return nSubsidy + nTime;
 }
 
 #define M7Mv2_SCALE 2.545
-int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees)
+int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, uint32_t nTime)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);
@@ -1605,12 +1605,12 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	if(nHeight <= 10)
 	{
 	    nSubsidy = 100000 * COIN;
-	    return nSubsidy + nFees;
+	    return nSubsidy + nTime;
 	}
 	nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
 	if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 	       nHeight, nSubsidy/COIN, nDiff);
-	return nSubsidy + nFees;
+	return nSubsidy + nTime;
     }
     
     /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
@@ -1680,7 +1680,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	nSubsidy = MIN_TX_FEE;
     }
 
-    return nSubsidy + nFees;
+    return nSubsidy + nTime;
 }
 
 double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
@@ -1751,7 +1751,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 */
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, CBlockIndex* pindex)
 {
     int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
@@ -1766,7 +1766,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
 				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
 
-    return nSubsidy + nFees;
+    return nSubsidy + nTime;
 }
 
 /*
