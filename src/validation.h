@@ -48,7 +48,7 @@
 class BlockValidationState;
 
 // Magi-specific reward functions
-int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees = 0);
+// int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned long nTime, CBlockIndex* pindex = nullptr);
 double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR);
