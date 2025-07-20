@@ -97,7 +97,7 @@ static const int64_t MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
 static const int nCoinbaseMaturity = 100;            // 100 blocks
 static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 
-inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+// consensus/amount.h inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // script/script.h // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
