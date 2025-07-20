@@ -48,7 +48,6 @@
 #include <utility>
 #include <vector>
 
-namespace BlockValidationState {
 class BlockValidationState;
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
 static const int PRM_MAGI_POW_HEIGHT = 80000;
@@ -64,10 +63,10 @@ static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+// static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
 static const int64 MIN_TX_FEE = .0001 * COIN;
 static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
-static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
+// static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
 //static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
 //static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
@@ -82,7 +81,7 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+// static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 inline bool IsMiningProofOfWork(int nHeight)
 {
@@ -131,7 +130,12 @@ inline bool IsProtocolV3(int nHeight)
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
 
-inline bool IsBlockVersion5(int nHeight) { return fTestNet || nHeight > 1446791; }
+inline bool IsBlockVersion5(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    return fTestNet || nHeight > 1446791;
+}
+
 inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
 inline int64 GetMaxPoWWaitingTime()
@@ -144,15 +148,13 @@ inline int64 GetMaxPoSWaitingTime()
     return (3 * 60); // Maximum time for PoS on hold
 }
 
-static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
-static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
-
 static const int64 nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
 static const int64 nMaxClockDriftV2 = 5 * 60;           // 5 mins
 static const int64 nMaxClockDriftV3 = 30;               // 30 secs
 
 inline int64 GetMaxClockDrift(int nHeight) 
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 //    return ( (nHeight > HEIGHT_CHAIN_SWITCH) ? nMaxClockDriftV2 : nMaxClockDriftV1 ); 
     if (fTestNet) return nMaxClockDriftV3;
     if (nHeight > HEIGHT_CHAIN_SWITCH && nHeight <= HEIGHT_PROTOCOL_V3)
@@ -169,6 +171,7 @@ inline int64 FutureDriftCoinbaseV2(int64 nTime, int nHeight) { return ( nTime + 
 
 inline int64 FutureDriftCoinbase(int64 nTime, int nHeight) 
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return FutureDriftCoinbaseV2(nTime, nHeight);
     if (nHeight > HEIGHT_PROTOCOL_V3)
         return FutureDriftCoinbaseV2(nTime, nHeight);
@@ -291,8 +294,6 @@ double GetPoSKernelPSV3(const CBlockIndex* blockindex = nullptr);
 
 // Wrapper for Peercoin compatibility
 int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned long nTime);
-
-} // namespace BlockValidationState
 
 class Chainstate;
 class CBlockTreeDB;
