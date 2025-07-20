@@ -74,7 +74,7 @@ static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, 
 static const int64 MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
 static const int64 MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
 
-static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
+// consensus/amount.h static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
 static const int nCoinbaseMaturity = 100;            // 100 blocks
 static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
