@@ -113,6 +113,7 @@ inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
     }
 }
 
+extern bool fTestNetWeightV2;
 inline bool IsPoSIIProtocolV2(int nHeight)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
