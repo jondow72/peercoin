@@ -17,7 +17,7 @@ static constexpr CAmount CENT = 10000;
 
 static const CAmount MIN_TX_FEE_PREV7 = CENT;
 static const CAmount MIN_TX_FEE = .0001 * COIN;
-static const CAmount PERKB_TX_FEE = CENT;
+static const CAmount PERKB_TX_FEE = MIN_TX_FEE;
 static const CAmount MIN_TXOUT_AMOUNT = CENT;
 static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
 static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;

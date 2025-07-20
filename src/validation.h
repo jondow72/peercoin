@@ -63,10 +63,10 @@ static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-// static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-static const int64 MIN_TX_FEE = .0001 * COIN;
-static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
-// static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
+// consensus/amount.h static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+// consensus/amount.h static const int64 MIN_TX_FEE = .0001 * COIN;
+// consensus/amount.h static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
+// consensus/amount.h static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
 //static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
 //static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
@@ -80,8 +80,8 @@ static const int nCoinbaseMaturity = 100;            // 100 blocks
 static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-// Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-// static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+// script/script.h Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
+// script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 inline bool IsMiningProofOfWork(int nHeight)
 {
