@@ -516,8 +516,8 @@ crypto_libbitcoin_crypto_base_la_CPPFLAGS = $(AM_CPPFLAGS)
 # static version of this library. We don't need a dynamic version, and a dynamic
 # version can't be used on windows anyway because the library doesn't currently
 # export DLL symbols.
-crypto_libbitcoin_crypto_base_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -static -fpermissive
-crypto_libbitcoin_crypto_base_la_LDFLAGS = $(AM_LDFLAGS) -static -lgmp -lgmpxx -lcrypto
+crypto_libbitcoin_crypto_base_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -static
+crypto_libbitcoin_crypto_base_la_LDFLAGS = $(AM_LDFLAGS) -static -lgmp -lgmpxx
 
 crypto_libbitcoin_crypto_base_la_SOURCES = \
   crypto/aes.cpp \
