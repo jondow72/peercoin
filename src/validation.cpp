@@ -1389,6 +1389,7 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 }
 
 // Magi-specific functions
+static bool fDebug = false;
 static bool fDebugMagi = false;
 static bool fDebugMagiPoS = false;
 
@@ -1759,7 +1760,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
-	if (fDebug && GetBoolArg("-printcreation"))
+	if (fDebug && gArgs.GetBoolArg("-printcreation", false))
         LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
 
 	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
