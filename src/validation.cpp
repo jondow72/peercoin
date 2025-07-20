@@ -1560,6 +1560,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
 
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
     int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
@@ -1749,14 +1750,14 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 */
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
-    int64 nNetWorkWeit = GetPoSKernelPS(pindex);
+    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
 		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
 		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
 
-    int64 nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
+    int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
 	if (fDebug && GetBoolArg("-printcreation"))
         LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
