@@ -1593,7 +1593,7 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 }
 
 #define M7Mv2_SCALE 2.545
-int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees)
+int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees, uint32_t nTime)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);
@@ -1610,7 +1610,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
 	if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 	       nHeight, nSubsidy/COIN, nDiff);
-	return nSubsidy + nFees;
+	return nSubsidy + nFees + nTime;
     }
     
     /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
@@ -1680,7 +1680,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	nSubsidy = MIN_TX_FEE;
     }
 
-    return nSubsidy + nFees;
+    return nSubsidy + nFees + nTime;
 }
 
 double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
