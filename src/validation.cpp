@@ -1701,7 +1701,7 @@ double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
+double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
 {
     double rAPR, rWeit=500000.;
 //    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
