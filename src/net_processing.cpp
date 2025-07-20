@@ -5008,7 +5008,7 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
     if (msg_type == NetMsgType::FEEFILTER) {
         CAmount newFeeFilter = 0;
         vRecv >> newFeeFilter;
-        if (MoneyRange(static_cast<const CAmount&>(newFeeFilter))) {
+        if (MoneyRange(newFeeFilter)) {
             if (auto tx_relay = peer->GetTxRelay(); tx_relay != nullptr) {
                 tx_relay->m_fee_filter_received = newFeeFilter;
             }
