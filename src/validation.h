@@ -60,6 +60,10 @@ double GetDifficultyFromBits(unsigned int nBits);
 double GetPoSKernelPSV2(const CBlockIndex* blockindex = nullptr, int lookup = 72);
 double GetPoSKernelPSV3(const CBlockIndex* blockindex = nullptr);
 
+const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
+
+
+
 // Wrapper for Peercoin compatibility
 int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned long nTime);
 
