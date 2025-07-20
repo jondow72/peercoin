@@ -3724,6 +3724,7 @@ CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
     return GetProofOfStakeReward(nCoinAge, 0, nTime, nullptr); // Ignore nMoneySupply, use nBits=0
 }
 
+static const uint32_t GENESIS_TIME = 1410566399;
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature) {
     if (block.fChecked)
         return true;
