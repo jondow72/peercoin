@@ -13,129 +13,196 @@
 #define END_MAGI_POW_HEIGHT_V2 5000000
 #define BLOCK_REWARD_ADJT 2700
 #define BLOCK_REWARD_ADJT_M7M_V2 32750
-
+#define HEIGHT_INIT_MAINTENANCE 1451226
+#define HEIGHT_END_MAINTENANCE 1481500
+static const uint32_t GENESIS_TIME = 1410566399;
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;
 static bool fDebugMagi = false;
 
-double GetDifficultyFromBits(unsigned int nBits){
+double GetDifficultyFromBits(unsigned int nBits) {
     int nShift = (nBits >> 24) & 0xff;
-
-    double dDiff =
-        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    while (nShift < 29)
-    {
+    double dDiff = (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
     return dDiff;
 }
 
-int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees)
-{
+int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees) {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);
-
-    int64 nSubsidy = 0;
+    int64_t nSubsidy = 0;
     
-    if (fTestNet && (nHeight%2 == 0))
-    {
-	if(nHeight <= 10)
-	{
-	    nSubsidy = 100000 * COIN;
-	    return nSubsidy + nFees;
-	}
-	nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
-	if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
-	       nHeight, nSubsidy / COIN, nDiff);
-	return nSubsidy + nFees;
+    if (fTestNet && (nHeight % 2 == 0)) {
+        if (nHeight <= 10) {
+            nSubsidy = 100000 * COIN;
+            return nSubsidy + nFees;
+        }
+        nSubsidy = (100 * COIN) >> (nHeight / 1051200);
+        if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                  nHeight, nSubsidy / COIN, nDiff);
+        return nSubsidy + nFees;
     }
     
-    /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
-	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
-				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
-
-	Remaining coins are: 404,995 (1.65%), that includes: 
-	Coin swap: 233,319 XMG (0.93%)
-	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
-
-	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
-	Some of posts regarding the coin swap: 
-	https://bitcointalk.org/index.php?topic=821170.0
-	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
-	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
-	
-	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
-    */
-    if(nHeight <= 10 && !fTestNet)
-    {
-        nSubsidy = 112500 * COIN;
+    if (nHeight <= 10 && !fTestNet) {
+        nSubsidy = 112500 * COIN; // 11,250,000 XMG for blocks 0-10
+    } else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) {
+        if (nHeight <= BLOCK_REWARD_ADJT) {
+            nSubsidy = 495.05 * pow((5.55243 * (exp_n(-0.3 * nDiff / 15.762) - exp_n(-0.6 * nDiff / 15.762))) * nDiff, 0.5) / 8.61553;
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        } else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 : (2.2 + (nHeight - 2700) * 0.0000274841);
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39) - exp_n(-0.6 * nDiff / 0.39))) * nDiff, 0.5) / 1.335
+                       * exp_n2(nDiff / 0.08, nDiffcu / 0.08);
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        } else {
+            double nDiffcu = (nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ((2.2 + (nHeight - 2700) * 0.0000183227)) / M7Mv2_SCALE;
+            nSubsidy = 294.118 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
+                       * exp_n2(nDiff / (0.08 / M7Mv2_SCALE), nDiffcu / (0.08 / M7Mv2_SCALE));
+            if (nSubsidy < 5) nSubsidy = 5;
+            nSubsidy *= COIN;
+            if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                      nHeight, nSubsidy / COIN, nDiff);
+        }
+    } else if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
+        double nDiffcu = log(nHeight) * 0.1;
+        nSubsidy = 50 * pow((5.55243 * (exp_n(-0.3 * nDiff / 0.39 * M7Mv2_SCALE) - exp_n(-0.6 * nDiff / 0.39 * M7Mv2_SCALE))) * nDiff, 0.5) / 0.8456
+                   * exp_n2(nDiff / (0.16 / M7Mv2_SCALE), nDiffcu / (0.16 / M7Mv2_SCALE));
+        if (nSubsidy < 3) nSubsidy = 3;
+        nSubsidy *= COIN;
+        if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
+                                  nHeight, nSubsidy / COIN, nDiff);
+        for (int i = 525600; i <= nHeight; i += 525600) nSubsidy *= 0.93;
+    } else {
+        nSubsidy = MIN_TX_FEE;
     }
-    else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) // difficulty dependent PoW-I mining
-    {
-	if (nHeight <= BLOCK_REWARD_ADJT) {
-	    nSubsidy = 495.05 * pow( (5.55243*(exp_n(-0.3*nDiff/15.762) - exp_n(-0.6*nDiff/15.762)))*nDiff, 0.5) / 8.61553;
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
-				nHeight, nSubsidy / COIN, nDiff);
-	}
-	else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
-	    double nDiffcu = ((nHeight <= 2700) ? 2.2 : (2.2+(nHeight-2700)*0.0000274841));
-	    nSubsidy = 294.118 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39) - exp_n(-0.6*nDiff/0.39)))*nDiff, 0.5) / 1.335
-			   * exp_n2(nDiff/0.08, nDiffcu/0.08);
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
-				nHeight, nSubsidy / COIN, nDiff);
-	}
-	else {
-	    double nDiffcu = ((nHeight <= 2700) ? 2.2 / M7Mv2_SCALE : ( (2.2+(nHeight-2700)*0.0000183227)) / M7Mv2_SCALE );
-	    nSubsidy = 294.118 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39*M7Mv2_SCALE) - exp_n(-0.6*nDiff/0.39*M7Mv2_SCALE)))*nDiff, 0.5) / 0.8456
-			   * exp_n2(nDiff/(0.08/M7Mv2_SCALE), nDiffcu/(0.08/M7Mv2_SCALE));
-	    if (nSubsidy < 5) nSubsidy = 5;
-	    nSubsidy *= COIN;
-	    if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
-				nHeight, nSubsidy / COIN, nDiff);
-	}
-    }
-    else if (nHeight <= END_MAGI_POW_HEIGHT_V2) // difficulty dependent PoW-II mining
-    {
-	double nDiffcu = log(nHeight)*0.1;
-	nSubsidy = 50 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39*M7Mv2_SCALE) - exp_n(-0.6*nDiff/0.39*M7Mv2_SCALE)))*nDiff, 0.5) / 0.8456
-			* exp_n2(nDiff/(0.16/M7Mv2_SCALE), nDiffcu/(0.16/M7Mv2_SCALE));
-	if (nSubsidy < 3) nSubsidy = 3;
-	nSubsidy *= COIN;
-	if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %u, nSubsidy = %" PRId64 ", nDiff = %f\n", 
-			    nHeight, nSubsidy / COIN, nDiff);
-//	nSubsidy = 15. * 2500. / (pow((nDiff+500.)/10., 2.));
-//	if (nSubsidy < 3) nSubsidy = 3;
-//	nSubsidy *= COIN;
-	for(int i = 525600; i <= nHeight; i += 525600) nSubsidy *= 0.93; // yearly decline (7%)
-    }
-    else {
-	nSubsidy = MIN_TX_FEE;
-    }
-
     return nSubsidy + nFees;
 }
 
-bool IsMaintenance(CBlockIndex* pindex) {
-    return false; // Placeholder, implement Magi's maintenance mode
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock) {
+    if (!pindexPrev) return 0;
+    unsigned int nHeight = fLastBlock ? pindexPrev->nHeight : pindexPrev->nHeight + 1;
+    return GetProofOfWorkReward(pindexPrev->nBits, nHeight, nFees);
+}
+
+bool IsMaintenance(const CBlockIndex* pindex) {
+    return (pindex->nHeight > HEIGHT_INIT_MAINTENANCE && pindex->nHeight < HEIGHT_END_MAINTENANCE);
 }
 
 bool IsPoSIIProtocolV2(int nHeight) {
-    return nHeight >= 50000; // Magi PoS-II-V2 fork height
+    return nHeight >= 50000;
 }
 
 int64_t GetPoSKernelPS(CBlockIndex* pindex) {
-    return 1000000; // Placeholder, implement Magi's network weight calculation
+    return GetPoSKernelPS(pindex, 72);
+}
+
+double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup) {
+    int nPoSInterval = lookup;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    const CBlockIndex* pindex = (blockindex == nullptr) ? GetLastBlockIndex(pindexBest, true) : blockindex;
+    const CBlockIndex* pindexPrevStake = nullptr;
+
+    while (pindex && nStakesHandled < nPoSInterval) {
+        if (pindex->IsProofOfStake()) {
+            dStakeKernelsTriedAvg += GetDifficultyFromBits(pindex->nBits) * 4294967296.0;
+            nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
+            pindexPrevStake = pindex;
+            nStakesHandled++;
+        }
+        pindex = pindex->pprev;
+    }
+    if (fDebugMagi)
+        LogPrintf("@GetPoSKernelPS -> stake blocks for average = %d\n", nStakesHandled);
+
+    double result = 0;
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
+
+    if (IsProtocolV3(nBestHeight))
+        result *= STAKE_TIMESTAMP_MASK + 1;
+
+    return result;
+}
+
+double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup) {
+    int nPoSInterval = lookup;
+    double diffTot = 0.;
+
+    const CBlockIndex* pindex0 = (blockindex == nullptr) ? GetLastBlockIndex(pindexBest, true) : blockindex;
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == nullptr || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == nullptr || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+    diffTot = GetDifficultyFromBits(pindexPrev->nBits);
+    for (int i = 1; i < nPoSInterval; i++) {
+        pindexPrev = pindexPrevPrev;
+        pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+        if (pindexPrevPrev == nullptr || !pindexPrevPrev->nHeight) break;
+        nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+        diffTot += GetDifficultyFromBits(pindexPrev->nBits);
+        nActualBlockTimeTot += nActualBlockTime;
+        nStakesHandled++;
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+        LogPrintf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diffTot / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return diffTot * 4294967296.0 / double(nActualBlockTimeTot);
+}
+
+double GetPoSKernelPSV3(const CBlockIndex* blockindex) {
+    int nPoSInterval = 72;
+    double dStakeKernelsTriedAvg = 0., diff = 0.;
+
+    const CBlockIndex* pindex0 = (blockindex == nullptr) ? GetLastBlockIndex(pindexBest, true) : blockindex;
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == nullptr || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == nullptr || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+    if (nActualBlockTime <= 0) {
+        nActualBlockTimeTot = 0;
+        nStakesHandled = 0;
+    } else {
+        diff = GetDifficultyFromBits(pindexPrev->nBits);
+        dStakeKernelsTriedAvg = GetDifficultyFromBits(pindexPrev->nBits) * 4294967296.0 / double(nActualBlockTime);
+    }
+    for (int i = 1; i < nPoSInterval; i++) {
+        pindexPrev = pindexPrevPrev;
+        pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+        if (pindexPrevPrev == nullptr || !pindexPrevPrev->nHeight) break;
+        nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+        if (nActualBlockTime > 0) {
+            diff += GetDifficultyFromBits(pindexPrev->nBits);
+            dStakeKernelsTriedAvg += GetDifficultyFromBits(pindexPrev->nBits) * 4294967296.0 / double(nActualBlockTime);
+            nActualBlockTimeTot += nActualBlockTime;
+            nStakesHandled++;
+        }
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+        LogPrintf("@GetPoSKernelPSV3 -> aver diff = %f, block time = %f\n", diff / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return dStakeKernelsTriedAvg / double(nStakesHandled);
 }
 
 double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR) {

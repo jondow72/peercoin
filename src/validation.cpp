@@ -60,7 +60,7 @@
 #include <warnings.h>
 
 #include <magi.h>
-#include <../crypto/m7m.h>
+//#include <../crypto/m7m.h>
 #include <../crypto/magimath.h>
 #include <inttypes.h>
 
@@ -1390,14 +1390,15 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 }
 
 static const uint32_t GENESIS_TIME = 1410566399;
+static const CAmount COIN = 100000000;
 
-// Wrappers for Peercoin's validation.h
+// Wrappers for Peercoin compatibility
 CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime) {
-    return GetProofOfWorkReward(nBits, 0, 0); // Use height=0, nFees=0 for compatibility
+    return GetProofOfWorkReward(nBits, 0, 0); // Default to height=0, nFees=0
 }
 
 CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply) {
-    return GetProofOfStakeReward(nCoinAge, 0, nTime, nullptr); // Ignore nMoneySupply, use nBits=0
+    return GetProofOfStakeReward(nCoinAge, 0, nTime, nullptr); // Ignore nMoneySupply
 }
 
 CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
@@ -3343,7 +3344,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-notempty", "coinbase output not empty in PoS block");
 
     if (block.IsProofOfWork()) {
-        unsigned int nHeight = (block.GetBlockTime() <= GENESIS_TIME + 86400) ? 1 : 0;
+        unsigned int nHeight = (block.GetBlockTime() <= GENESIS_TIME + 86400) ? 1 : 0; // bad-cb-amount fix
         LogPrintf("CheckBlock: Using nHeight=%u for PoW reward calculation\n", nHeight);
         CAmount nMaxReward = GetProofOfWorkReward(block.GetBlockHeader().nBits, nHeight);
         CAmount nReward = block.vtx[0]->GetValueOut();
