@@ -1607,7 +1607,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	    return nSubsidy + nFees;
 	}
 	nSubsidy = (100 * COIN) >> (nHeight / 1051200); // cut in half every 1.05 mil blocks ~2 years
-	if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %d, nSubsidy = %"PRId64", nDiff = %f\n", 
+	if (fDebugMagi) LogPrintf("@@GPoWR-testnet nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 	       nHeight, nSubsidy/COIN, nDiff);
 	return nSubsidy + nFees;
     }
@@ -1639,7 +1639,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 	    nSubsidy = 495.05 * pow( (5.55243*(exp_n(-0.3*nDiff/15.762) - exp_n(-0.6*nDiff/15.762)))*nDiff, 0.5) / 8.61553;
 	    if (nSubsidy < 5) nSubsidy = 5;
 	    nSubsidy *= COIN;
-	    if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %"PRId64", nDiff = %f\n", 
+	    if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 				nHeight, nSubsidy/COIN, nDiff);
 	}
 	else if (nHeight <= BLOCK_REWARD_ADJT_M7M_V2) {
@@ -1648,7 +1648,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 			   * exp_n2(nDiff/0.08, nDiffcu/0.08);
 	    if (nSubsidy < 5) nSubsidy = 5;
 	    nSubsidy *= COIN;
-	    if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %"PRId64", nDiff = %f\n", 
+	    if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 				nHeight, nSubsidy/COIN, nDiff);
 	}
 	else {
@@ -1657,7 +1657,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 			   * exp_n2(nDiff/(0.08/M7Mv2_SCALE), nDiffcu/(0.08/M7Mv2_SCALE));
 	    if (nSubsidy < 5) nSubsidy = 5;
 	    nSubsidy *= COIN;
-	    if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %"PRId64", nDiff = %f\n", 
+	    if (fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 				nHeight, nSubsidy/COIN, nDiff);
 	}
     }
@@ -1668,7 +1668,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t n
 			* exp_n2(nDiff/(0.16/M7Mv2_SCALE), nDiffcu/(0.16/M7Mv2_SCALE));
 	if (nSubsidy < 3) nSubsidy = 3;
 	nSubsidy *= COIN;
-	if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %"PRId64", nDiff = %f\n", 
+	if (fDebug && fDebugMagi) LogPrintf("@@GPoWR nHeight = %d, nSubsidy = %" PRId64 ", nDiff = %f\n", 
 			    nHeight, nSubsidy/COIN, nDiff);
 //	nSubsidy = 15. * 2500. / (pow((nDiff+500.)/10., 2.));
 //	if (nSubsidy < 3) nSubsidy = 3;
@@ -1760,9 +1760,9 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
 	if (fDebug && GetBoolArg("-printcreation"))
-        LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
+        LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
 
-	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %"PRI64d", nCoinAge = %"PRI64d", rAPR = %f\n", 
+	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
 				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
 
     return nSubsidy + nFees;
