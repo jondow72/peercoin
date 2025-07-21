@@ -1595,8 +1595,8 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 #define M7Mv2_SCALE 2.545
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
-// Get the current block height from chain state
-    int nHeight = active_chain_tip.nHeight + 1; // Current block height
+// Get the current block height
+    int nHeight = active_chain_tip ? active_chain_tip->nHeight + 1 : 0;
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);
 
