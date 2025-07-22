@@ -3779,11 +3779,11 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, block.GetBlockTime(), unsigned int nHeight = 0, uint64_t nFees = 0) - nCoinbaseCost) : 0))
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, block.GetBlockTime(), static_cast<unsigned int>(0), static_cast<uint64_t>(0)) - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, block.GetBlockTime(), unsigned int nHeight = 0, uint64_t nFees = 0) : 0)));
+                   FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, block.GetBlockTime(), static_cast<unsigned int>(0), static_cast<uint64_t>(0)) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
