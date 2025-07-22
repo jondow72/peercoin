@@ -1748,7 +1748,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
     return nSubsidy;
 }
 */
-
+/*
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
@@ -1767,8 +1767,8 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
     return nSubsidy + nFees;
 }
+*/
 
-/*
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
 {
@@ -1797,7 +1797,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
         LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
     return nSubsidy;
 }
-*/
+
 
 CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
     : m_dbview{std::move(db_params), std::move(options)},
