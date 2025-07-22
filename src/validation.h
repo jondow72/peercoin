@@ -1290,7 +1290,7 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // peercoin:
-CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime, unsigned int nHeight, uint64_t nFees);
+CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime, 0, 0);
 // CAmount GetProofOfStakeReward(int64_t nCoinAge, uint64_t nFees, CBlockIndex* pindex);
 CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
 
