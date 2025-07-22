@@ -1496,7 +1496,6 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
       rDiffAverEMA, damping );
     return rDiffAverEMA;
 }
-*/
 
 double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0)
 {
@@ -1515,14 +1514,14 @@ double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0)
     }
     return rDiffAver/double(nWeightTot);
 }
-
+*/
 #define HEIGHT_INIT_MAINTENANCE 1451226
 #define HEIGHT_END_MAINTENANCE 1481500
 bool IsMaintenance(const CBlockIndex* pindex_)
 {
     return ( (pindex_->nHeight > HEIGHT_INIT_MAINTENANCE) && (pindex_->nHeight < HEIGHT_END_MAINTENANCE) );
 }
-
+/*
 int64_t GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
 {
     int nHeight = pindex0->nHeight;
@@ -1543,7 +1542,7 @@ int64_t GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
     for(int i = 500000; i <= nHeight; i += 500000) rSubsidy *= 0.93; // yearly decline (7%)
     return (int64_t)rSubsidy;
 }
-
+*/
 bool IsChainInSwitch(const CBlockIndex* pindex_)
 {
     const CBlockIndex *pindex0 = pindex_;
@@ -1558,7 +1557,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     }
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
-
+/*
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
@@ -1591,7 +1590,7 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
     if (IsChainInSwitch(pindex0)) nSubsidy = (double)nSubsidy / 25.;
     return nSubsidy + nFees;
 }
-
+*/
 #define M7Mv2_SCALE 2.545
 int64_t GetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64_t nFees)
 {
