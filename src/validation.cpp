@@ -3776,14 +3776,15 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
     // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
-    if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime(), 0, 0) - nCoinbaseCost) : 0)) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime(), 0, 0) : 0)));
+CAmount nCoinbaseCost = 0;
+if (block.IsProofOfWork()) {
+    nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+}
+if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward(block.nBits, block.GetBlockTime(), block.nHeight, 0) - nCoinbaseCost) : 0)) {
+    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+            strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
+                FormatMoney(block.vtx[0]->GetValueOut()),
+                FormatMoney(block.IsProofOfWork() ? GetProofOfWorkReward(block.nBits, block.GetBlockTime(), block.nHeight, 0) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
