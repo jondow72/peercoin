@@ -1411,7 +1411,7 @@ double GetDifficultyFromBits(unsigned int nBits){
     }
     return dDiff;
 }
-
+/*
 #define BRW_BLKTIME_COEFF 0.1 // block time effect on average weight; the larger value, the less effect
 #define BRW_AVER_COEFF 0.25 // the larger value, the regular moving average
 
@@ -1496,7 +1496,7 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
       rDiffAverEMA, damping );
     return rDiffAverEMA;
 }
-
+*/
 
 double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0)
 {
