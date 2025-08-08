@@ -48,9 +48,9 @@
 class BlockValidationState;
 
 // Magi-specific reward functions
-// int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
+//int64_t MagiGetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned long nTime, CBlockIndex* pindex = nullptr);
+//int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR);
 double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex);
 int64_t GetPoSKernelPS(CBlockIndex* pindex = nullptr);
@@ -100,15 +100,6 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // consensus/amount.h inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // script/script.h // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
-
-
-
-
-
-// Wrapper for Peercoin compatibility
-int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned long nTime);
-
-
 
 class Chainstate;
 class CBlockTreeDB;
