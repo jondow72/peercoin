@@ -1518,54 +1518,7 @@ int64_t MagiGetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64
     return nSubsidy;
 }
 
-double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
-{
-    double rAPR, rWeit=20000.;
-    rAPR = rMaxAPR * ( ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) ) + 1 );
-    return rAPR;
-}
 
-double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
-{
-    double rAPR, rWeit=20000.;
-//    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
-    return rAPR;
-}
-
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
-{
-    double rAPR, rWeit=500000.;
-//    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
-    if (pindex0 && IsMaintenance(pindex0)) rAPR *= 1.2;
-    if (fDebugMagiPoS) LogPrintf("@PoS-APRV2 rAPR = %f\n", rAPR);
-    return rAPR;
-}
-
-// miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
-{
-    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
-		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
-		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
-
-    int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
-
-	if (fDebug && gArgs.GetBoolArg("-printcreation", false))
-        LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
-
-	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
-				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
-
-    return nSubsidy + nFees;
-}
 
 //-------------------------------------------------------------------------------------------
 
