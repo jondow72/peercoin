@@ -1715,6 +1715,7 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
 
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
+    int64_t MagiGetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
@@ -1770,6 +1771,7 @@ int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
 {
+    int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
     static int64_t nRewardCoinYear = CENT;  // creation amount per coin-year
     int64_t nSubsidy = nCoinAge * 33 / (365 * 33 + 8) * nRewardCoinYear;
 
