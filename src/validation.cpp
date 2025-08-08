@@ -1593,10 +1593,8 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 }
 
 #define M7Mv2_SCALE 2.545
-int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
+int64 MagiGetProofOfWorkReward(unsigned int nBits, unsigned int nHeight, int64 nFees)
 {
-// Access chain state to get height
-    int nHeight = CBlockIndex* tip + 1; // Current block height
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);
 
@@ -1715,7 +1713,6 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
     return rAPR;
 }
 
-/*
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
@@ -1750,10 +1747,9 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 
     return nSubsidy;
 }
-*/
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
+int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
     int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
@@ -1771,7 +1767,6 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
     return nSubsidy + nFees;
 }
 
-/*
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
 {
@@ -1800,7 +1795,6 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
         LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
     return nSubsidy;
 }
-*/
 
 CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
     : m_dbview{std::move(db_params), std::move(options)},
