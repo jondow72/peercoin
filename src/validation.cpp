@@ -1430,7 +1430,7 @@ double GetDifficultyFromBits(unsigned int nBits){
 // diff data filter to stabilize the rewards
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
 {
-    int64 nWeightTot, nActualBlockSpacing;
+    int64_t nWeightTot, nActualBlockSpacing;
     double rDiffAverEMA, rDiffAver, rfw, rWeight;
     const CBlockIndex* pindexPrev = pindex0;
 
@@ -1460,8 +1460,8 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
     if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
     else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
 
-    rDiffAverEMA = GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * BRW_WEIGHT_SCALE));
-    nWeightTot = ((int64)(rfw*BRW_WEIGHT_SCALE));
+    rDiffAverEMA = GetDifficultyFromBits(pindexPrev->nBits) * ((int64_t)(rfw * BRW_WEIGHT_SCALE));
+    nWeightTot = ((int64_t)(rfw*BRW_WEIGHT_SCALE));
     rWeight = 1.-rfw;
     for(int i = 1; i <= BBLOCK-1; i++)
     {
@@ -1475,8 +1475,8 @@ double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo)
 	rfw = (1. - exp_n(-double(nActualBlockSpacing)*BRW_EXPON_COEFF*BRW_BLKTIME_COEFF/double(GetTargetSpacingWork(pindex0->nHeight+1))) ) * BRW_AVER_COEFF;
 	if (rfw < BRW_WEIGHT_MIN) { rfw = BRW_WEIGHT_MIN; }
 	else if (rfw > BRW_WEIGHT_MAX) { rfw = BRW_WEIGHT_MAX; }
-	rDiffAverEMA += GetDifficultyFromBits(pindexPrev->nBits) * ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
-	nWeightTot += ((int64)(rfw * rWeight * BRW_WEIGHT_SCALE));
+	rDiffAverEMA += GetDifficultyFromBits(pindexPrev->nBits) * ((int64_t)(rfw * rWeight * BRW_WEIGHT_SCALE));
+	nWeightTot += ((int64_t)(rfw * rWeight * BRW_WEIGHT_SCALE));
 	rWeight *= (1.-rfw);
     }
     rDiffAverEMA /= double(nWeightTot);
@@ -1523,7 +1523,7 @@ bool IsMaintenance(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight > HEIGHT_INIT_MAINTENANCE) && (pindex_->nHeight < HEIGHT_END_MAINTENANCE) );
 }
 
-int64 GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
+int64_t GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
 {
     int nHeight = pindex0->nHeight;
     double M7Mv2_move = ( (nHeight <= 75000) ? 2.85 : ( 2.85 - pow( log(nHeight) - log(75000.), 0.3 )*1.5 ) );
@@ -1541,7 +1541,7 @@ int64 GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
     if (rSubsidy > 50*COIN) { rSubsidy = 50*COIN; }
     else if (rSubsidy < MIN_TX_FEE) { rSubsidy = MIN_TX_FEE; }
     for(int i = 500000; i <= nHeight; i += 500000) rSubsidy *= 0.93; // yearly decline (7%)
-    return (int64)rSubsidy;
+    return (int64_t)rSubsidy;
 }
 
 bool IsChainInSwitch(const CBlockIndex* pindex_)
@@ -1559,11 +1559,12 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
 
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock)
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
     int nHeight = pindex0->nHeight;
-    int64 nSubsidy = 0;
+    int64_t nSubsidy = 0;
     
 //      double rDiff = GetDifficultyFromBitsV2(pindex0); 
 //      printf("@@BLKV2-test (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
@@ -1592,13 +1593,13 @@ int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fL
 }
 
 #define M7Mv2_SCALE 2.545
-int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
+int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 
     double nDiff = GetDifficultyFromBits(nBits);
 
-    int64 nSubsidy = 0;
+    int64_t nSubsidy = 0;
     
     if (fTestNet && (nHeight%2 == 0))
     {
@@ -1683,7 +1684,7 @@ int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
+double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit=20000.;
     rAPR = rMaxAPR * ( ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) 
@@ -1691,7 +1692,7 @@ double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR)
+double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit=20000.;
 //    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
@@ -1700,7 +1701,7 @@ double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
+double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
 {
     double rAPR, rWeit=500000.;
 //    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
@@ -1712,14 +1713,14 @@ double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pind
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
-    int64 nNetWorkWeit = GetPoSKernelPS(pindex);
+    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
 		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
 		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
 
-    int64 nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
+    int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
 	if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
@@ -1802,7 +1803,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
 // maximum nBits value could possible be required nTime after
 // minimum proof-of-work required was nBase
 //
-unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTime)
+unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64_t nTime)
 {
     CBigNum bnResult;
     bnResult.SetCompact(nBase);
@@ -1822,7 +1823,7 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTi
 // minimum amount of work that could possibly be required nTime after
 // minimum proof-of-work required was nBase
 //
-unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
+unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 {
     return ComputeMaxBits(bnProofOfWorkLimit, nBase, nTime);
 }
@@ -1831,7 +1832,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
 // minimum amount of stake that could possibly be required nTime after
 // minimum proof-of-stake required was nBase
 //
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime)
+unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime)
 {
     return ComputeMaxBits(bnProofOfStakeLimit, nBase, nTime);
 }
@@ -1905,8 +1906,8 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
-    int64 nTargetSpacing = fProofOfStake? GetStakeTargetSpacing(pindexLast->nHeight+1): GetTargetSpacingWork(pindexLast->nHeight+1);
-    int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+    int64_t nTargetSpacing = fProofOfStake? GetStakeTargetSpacing(pindexLast->nHeight+1): GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 	if (nActualSpacing < 0)
     {
         if (IsProtocolV3(pindexLast->nHeight+1))
@@ -1933,7 +1934,7 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
     // ppcoin: retarget with exponential moving toward target spacing
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
-    int64 nInterval = nTargetTimespan / nTargetSpacing;
+    int64_t nInterval = nTargetTimespan / nTargetSpacing;
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
 
@@ -1961,18 +1962,18 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
 }
 
 #define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
-int64 GetTargetSpacingWork(int nHeight)
+int64_t GetTargetSpacingWork(int nHeight)
 {
     return ( (nHeight >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) ? 
         nTargetSpacingV3Work : nTargetSpacingWork );
 }
 
-int64 GetTargetTimespanV3(bool fProofOfStake)
+int64_t GetTargetTimespanV3(bool fProofOfStake)
 {
     return ( fProofOfStake? nTargetTimespanV3Stake : nTargetTimespanV3Work );
 }
 
-int64 GetTargetSpacingV3(bool fProofOfStake)
+int64_t GetTargetSpacingV3(bool fProofOfStake)
 {
     return ( fProofOfStake? nTargetSpacingV3Stake : nTargetSpacingV3Work );
 }
@@ -1981,8 +1982,8 @@ unsigned int GetNextTargetRequired_v3(const CBlockIndex* pindexLast, bool fProof
 {
     CBigNum bnTargetLimit = bnProofOfWorkLimit;
 
-    int64 nTargetTimespan0 = GetTargetTimespanV3(fProofOfStake);
-    int64 nTargetSpacing0 = GetTargetSpacingV3(fProofOfStake);
+    int64_t nTargetTimespan0 = GetTargetTimespanV3(fProofOfStake);
+    int64_t nTargetSpacing0 = GetTargetSpacingV3(fProofOfStake);
 
     if(fProofOfStake)
     {
@@ -2000,7 +2001,7 @@ unsigned int GetNextTargetRequired_v3(const CBlockIndex* pindexLast, bool fProof
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
-    int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
     if(nActualSpacing < 0)
     {
         // printf(">> nActualSpacing = %"PRI64d" corrected to 1.\n", nActualSpacing);
@@ -2021,7 +2022,7 @@ unsigned int GetNextTargetRequired_v3(const CBlockIndex* pindexLast, bool fProof
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
 
-    int64 nInterval = nTargetTimespan0 / nTargetSpacing0;
+    int64_t nInterval = nTargetTimespan0 / nTargetSpacing0;
     bnNew *= ((nInterval - 1) * nTargetSpacing0 + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing0);
 
@@ -2047,8 +2048,8 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
     /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 15;
+    int64_t nActualBlockSpacing, nActualTimeSpanMQW;
+    int64_t nAveragedBlocks = 1, nTotPastBlocks = 15;
     CBigNum bnAverage;
     CBigNum bnAveragePrev;
 
@@ -2075,9 +2076,9 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
     nActualTimeSpanMQW = nActualBlockSpacing;
     double fw = exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF_TESNT*MQW_TIME_COEFF_TESNT/double(GetTargetSpacingWork(pindexLast->nHeight+1))) * MQW_AVER_COEFF_TESNT;
     bnAverage.SetCompact(pindexPrev->nBits);
-    bnAverage = bnAverage * ((int64)(fw*WEIGHT_SCALE_TESNT));
+    bnAverage = bnAverage * ((int64_t)(fw*WEIGHT_SCALE_TESNT));
     
-    int64 nWeightTot = ((int64)(fw*WEIGHT_SCALE_TESNT));
+    int64_t nWeightTot = ((int64_t)(fw*WEIGHT_SCALE_TESNT));
     double rWeight = 1.-fw;
 
     for(unsigned int i = 1; pindexPrevPrev; i++)
@@ -2092,8 +2093,8 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
 	    nAveragedBlocks++;
 	    nActualTimeSpanMQW += nActualBlockSpacing;
 	    fw = exp_n(-double(nActualBlockSpacing)*MQW_EXPON_COEFF_TESNT*MQW_TIME_COEFF_TESNT/double(GetTargetSpacingWork(pindexLast->nHeight+1))) * MQW_AVER_COEFF_TESNT;
-	    bnAverage += (CBigNum().SetCompact(pindexPrev->nBits)) * ((int64)(fw*rWeight*WEIGHT_SCALE_TESNT));
-	    nWeightTot += ((int64)(fw*rWeight*WEIGHT_SCALE_TESNT));
+	    bnAverage += (CBigNum().SetCompact(pindexPrev->nBits)) * ((int64_t)(fw*rWeight*WEIGHT_SCALE_TESNT));
+	    nWeightTot += ((int64_t)(fw*rWeight*WEIGHT_SCALE_TESNT));
 	    rWeight *= (1.-fw);
 	}
     }
@@ -2101,7 +2102,7 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks*GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks*GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW/3)
         nActualTimeSpanMQW = nTargetTimeSpanMQW/3;
@@ -2130,8 +2131,8 @@ unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
     /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 15;
+    int64_t nActualBlockSpacing, nActualTimeSpanMQW;
+    int64_t nAveragedBlocks = 1, nTotPastBlocks = 15;
     CBigNum bnAverage;
     CBigNum bnAveragePrev;
 
@@ -2172,9 +2173,9 @@ unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
     }
 
     bnAverage.SetCompact(pindexPrev->nBits);
-    bnAverage *= ((int64)(fw * WEIGHT_SCALE));
+    bnAverage *= ((int64_t)(fw * WEIGHT_SCALE));
 
-    int64 nWeightTot = ((int64)(fw * WEIGHT_SCALE));
+    int64_t nWeightTot = ((int64)(fw * WEIGHT_SCALE));
     double rWeight = 1.-fw;
 
     for(unsigned int i = 1; pindexPrevPrev; i++)
@@ -2212,7 +2213,7 @@ unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW / 3) {
         nActualTimeSpanMQW = nTargetTimeSpanMQW / 3;
@@ -2239,8 +2240,8 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 13;
+    int64_t nActualBlockSpacing, nActualTimeSpanMQW;
+    int64_t nAveragedBlocks = 1, nTotPastBlocks = 13;
     CBigNum bnAverage;
     CBigNum bnAveragePrev;
 
@@ -2281,7 +2282,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     }
 
     bnAverage.SetCompact(pindexPrev->nBits);
-    bnAverage *= ((int64)(fw * WEIGHT_SCALE * MQW_DUMMY_NUMBER));
+    bnAverage *= ((int64_t)(fw * WEIGHT_SCALE * MQW_DUMMY_NUMBER));
 
     double rWeightTot = fw * WEIGHT_SCALE * MQW_DUMMY_NUMBER;
     double rWeight = 1.-fw;
@@ -2316,7 +2317,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
         }
     }
 
-    int64 nWeightTot = (int64_t)rWeightTot;
+    int64_t nWeightTot = (int64_t)rWeightTot;
 
     if (nWeightTot < 1) {
         nWeightTot = 1;
@@ -2327,7 +2328,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW / 3) {
         nActualTimeSpanMQW = nTargetTimeSpanMQW / 3;
@@ -2350,6 +2351,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fDebug) printf("nHeight: %d\n", pindexLast->nHeight);
     int DiffMode = 1;
     if (fTestNet) DiffMode = 1;

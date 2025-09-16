@@ -32,6 +32,7 @@
 #include <util/fs.h>
 #include <util/hasher.h>
 #include <util/translation.h>
+#include <util/system.h>
 //#include <wallet/wallet.h>
 
 #include <atomic>
@@ -48,6 +49,9 @@
 class BlockValidationState;
 
 // Magi-specific reward functions
+
+static bool fTestNetWeightV2 = false; // Temporary declaration
+
 //int64_t MagiGetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 //int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
@@ -64,9 +68,6 @@ const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
 int64_t GetTargetSpacingWork(int nHeight);
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
 
-
-
-
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
 static const int PRM_MAGI_POW_HEIGHT = 80000;
 static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block
@@ -81,62 +82,25 @@ static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 // net_processing.cpp static const unsigned int MAX_INV_SZ = 50000;
-// consensus/amount.h static const int64_t COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-// consensus/amount.h static const int64_t MIN_TX_FEE = .0001 * COIN;
-// consensus/amount.h static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
-// consensus/amount.h static const int64_t MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
-//static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
-//static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
+// consensus/amount.h static static const int64_t COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+// consensus/amount.h static static const int64_t MIN_TX_FEE = .0001 * COIN;
+// consensus/amount.h static static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
+// consensus/amount.h static static const int64_t MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
+//static const int64_t MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
+//static const int64_t MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
 static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
 static const int64_t MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
 static const int64_t MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
 
-// consensus/amount.h static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
+// consensus/amount.h static const int64_t MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
 static const int nCoinbaseMaturity = 100;            // 100 blocks
 static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 
 // consensus/amount.h inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-// script/script.h // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-// script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
-
-
-//------------------------------------------------------------------------------------
-
-static const int MAX_MAGI_POW_HEIGHT = 25000000;
-static const int PRM_MAGI_POW_HEIGHT = 80000;
-static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block
-static const int END_MAGI_POW_HEIGHT = 500000;
-static const int END_MAGI_POW_HEIGHT_V2 = 5000000; // PoW-II aims to issue 12 mil and more than 10 years
-
-static const int BLOCK_REWARD_ADJT = 2700;
-static const int BLOCK_REWARD_ADJT_M7M_V2 = 32750;
-
-static const unsigned int MAX_BLOCK_SIZE = 1000000;
-static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
-static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
-static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
-static const unsigned int MAX_INV_SZ = 50000;
-static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-static const int64 MIN_TX_FEE = .0001 * COIN;
-static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
-static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
-//static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
-//static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
-static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
-static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
-static const int64 MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
-static const int64 MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
-
-static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
-
-static const int nCoinbaseMaturity = 100;            // 100 blocks
-static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
-
-inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+// script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 inline bool IsMiningProofOfWork(int nHeight)
 {
@@ -146,6 +110,7 @@ inline bool IsMiningProofOfWork(int nHeight)
 
 inline bool IsMiningProofOfStake(int nHeight ) 
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return nHeight > 10;
     if (nHeight <= BLOCK_REWARD_ADJT) return (nHeight > 6720); // two weeks
     else return (nHeight > 10080); // three weeks
@@ -159,6 +124,7 @@ inline bool IsMiningProofOfStake(int nHeight )
 
 inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) {
 	   return (nTime0 > FORK_BLOCK_REWARDS_V2_TESNT);
     } else {
@@ -168,6 +134,7 @@ inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
 
 inline bool IsPoSIIProtocolV2(int nHeight)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) {
     	if (nHeight > 40860) fTestNetWeightV2 = true;
 	   else fTestNetWeightV2 = false;
@@ -177,19 +144,20 @@ inline bool IsPoSIIProtocolV2(int nHeight)
 
 inline bool IsProtocolV3(int nHeight)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return true;
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
-
+static bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 inline bool IsBlockVersion5(int nHeight) { return fTestNet || nHeight > 1446791; }
 inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
-inline int64 GetMaxPoWWaitingTime()
+inline int64_t GetMaxPoWWaitingTime()
 {
     return (10 * 60); // Maximum time for PoW on hold
 }
 
-inline int64 GetMaxPoSWaitingTime()
+inline int64_t GetMaxPoSWaitingTime()
 {
     return (3 * 60); // Maximum time for PoS on hold
 }
@@ -200,15 +168,16 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
-static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
+// static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
+// static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
 
-static const int64 nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
-static const int64 nMaxClockDriftV2 = 5 * 60;           // 5 mins
-static const int64 nMaxClockDriftV3 = 30;               // 30 secs
+static const int64_t nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
+static const int64_t nMaxClockDriftV2 = 5 * 60;           // 5 mins
+static const int64_t nMaxClockDriftV3 = 30;               // 30 secs
 
-inline int64 GetMaxClockDrift(int nHeight) 
+inline int64_t GetMaxClockDrift(int nHeight) 
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 //    return ( (nHeight > HEIGHT_CHAIN_SWITCH) ? nMaxClockDriftV2 : nMaxClockDriftV1 ); 
     if (fTestNet) return nMaxClockDriftV3;
     if (nHeight > HEIGHT_CHAIN_SWITCH && nHeight <= HEIGHT_PROTOCOL_V3)
@@ -218,13 +187,14 @@ inline int64 GetMaxClockDrift(int nHeight)
     return nMaxClockDriftV1;
 }
 
-inline int64 PastDrift(int64 nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
-inline int64 FutureDrift(int64 nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
-inline int64 FutureDriftCoinbaseV1(int64 nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
-inline int64 FutureDriftCoinbaseV2(int64 nTime, int nHeight) { return ( nTime + 30 * 60 ); }
+inline int64_t PastDrift(int64_t nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
+inline int64_t FutureDrift(int64_t nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
+inline int64_t FutureDriftCoinbaseV1(int64_t nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
+inline int64_t FutureDriftCoinbaseV2(int64_t nTime, int nHeight) { return ( nTime + 30 * 60 ); }
 
-inline int64 FutureDriftCoinbase(int64 nTime, int nHeight) 
+inline int64_t FutureDriftCoinbase(int64_t nTime, int nHeight) 
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return FutureDriftCoinbaseV2(nTime, nHeight);
     if (nHeight > HEIGHT_PROTOCOL_V3)
         return FutureDriftCoinbaseV2(nTime, nHeight);
@@ -235,99 +205,35 @@ inline bool IsChainAtSwitchPoint(int nHeight) { return (nHeight == HEIGHT_CHAIN_
 inline bool IsChainRuleSwitchedOff(int nHeight) { return (nHeight > HEIGHT_CHAIN_SWITCH); }
 inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
-int64 GetTargetSpacingWork(int nHeight);
-int64 GetTargetSpacing(bool fProofOfStake);
-int64 GetTargetTimespan(bool fProofOfStake);
-
-extern CScript COINBASE_FLAGS;
-
-extern CCriticalSection cs_main;
-extern std::map<uint256, CBlockIndex*> mapBlockIndex;
-extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
-extern uint256 hashGenesisBlock;
-extern CBlockIndex* pindexGenesisBlock;
-extern unsigned int nStakeMinAge;
-extern int64 nStakeSplitThreshold;
-extern int64 nStakeCombineThreshold;
-//extern int64 nLastPrevMoneySupply;
-extern int nBestHeight;
-extern CBigNum bnBestChainTrust;
-extern CBigNum bnBestInvalidTrust;
-extern uint256 hashBestChain;
-extern CBlockIndex* pindexBest;
-extern unsigned int nTransactionsUpdated;
-extern uint64 nLastBlockTx;
-extern uint64 nLastBlockSize;
-extern int64 nLastCoinStakeSearchInterval;
-extern const std::string strMessageMagic;
-extern double dHashesPerSec;
-extern int64 nHPSTimerStart;
-extern int64 nTimeBestReceived;
-extern CCriticalSection cs_setpwalletRegistered;
-extern std::set<CWallet*> setpwalletRegistered;
-extern unsigned char pchMessageStart[4];
-extern std::map<uint256, CBlock*> mapOrphanBlocks;
-
-// Settings
-extern int64 nTransactionFee;
-extern int64 nMinimumInputValue;
-
-// Minimum disk space required - used in CheckDiskSpace()
-static const uint64 nMinDiskSpace = 52428800;
+int64_t GetTargetSpacingWork(int nHeight);
+int64_t GetTargetSpacing(bool fProofOfStake);
+int64_t GetTargetTimespan(bool fProofOfStake);
 
 
-class CReserveKey;
-class CTxDB;
-class CTxIndex;
 
-void RegisterWallet(CWallet* pwalletIn);
-void UnregisterWallet(CWallet* pwalletIn);
-void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
-bool ProcessBlock(CNode* pfrom, CBlock* pblock);
-bool CheckDiskSpace(uint64 nAdditionalBytes=0);
-FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
-FILE* AppendBlockFile(unsigned int& nFileRet);
-bool LoadBlockIndex(bool fAllowNew=true);
-void PrintBlockTree();
-CBlockIndex* FindBlockByHeight(int nHeight);
-bool ProcessMessages(CNode* pfrom);
-bool SendMessages(CNode* pto, bool fSendTrickle);
-bool LoadExternalBlockFile(FILE* fileIn);
+
 void GenerateMagi(bool fGenerate, CWallet* pwallet);
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false);
-void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
-void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
-unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
-int GetNumBlocksOfPeers();
-bool IsInitialBlockDownload();
-std::string GetWarnings(std::string strFor);
-bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
-uint256 WantedByOrphan(const CBlock* pblockOrphan);
-const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
-const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
-const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
+
+int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+
 void MagiMiner(CWallet *pwallet, bool fProofOfStake);
-void ResendWalletTransactions();
+
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
 double GetDifficultyFromBits(unsigned int nBits);
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
+double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
 bool IsChainInSwitch(const CBlockIndex* pindex_);
 int GetCoinbaseMaturity(int nHeight);
 //bool CheckMoneySupply(CBlockIndex* pindexPrev);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-bool IsBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfWorkBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfStakeBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsProofOfWorkBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsProofOfStakeBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
 
 //--------------------------------------------------------------------------------------------------------------
 
