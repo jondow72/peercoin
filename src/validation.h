@@ -212,13 +212,13 @@ int64_t GetTargetTimespan(bool fProofOfStake);
 
 
 
-void GenerateMagi(bool fGenerate, CWallet* pwallet);
+// void GenerateMagi(bool fGenerate, CWallet* pwallet);
 
 int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 
-void MagiMiner(CWallet *pwallet, bool fProofOfStake);
+// void MagiMiner(CWallet *pwallet, bool fProofOfStake);
 
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
 double GetDifficultyFromBits(unsigned int nBits);
@@ -229,7 +229,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_);
 int GetCoinbaseMaturity(int nHeight);
 //bool CheckMoneySupply(CBlockIndex* pindexPrev);
 
-bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
+// bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
 bool IsBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
 bool IsProofOfWorkBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
