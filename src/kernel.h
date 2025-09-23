@@ -5,6 +5,7 @@
 #define PEERCOIN_KERNEL_H
 
 #include <primitives/transaction.h> // CTransaction(Ref)
+#include <../crypto/magimath.h>
 
 class CBlockIndex;
 class BlockValidationState;
