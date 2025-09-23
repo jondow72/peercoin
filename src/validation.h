@@ -46,7 +46,6 @@
 #include <utility>
 #include <vector>
 
-static bool fTestNetWeightV2 = false; // Temporary declaration
 // Magi-specific reward functions
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
 static const int PRM_MAGI_POW_HEIGHT = 80000;
@@ -129,7 +128,12 @@ inline bool IsProtocolV3(int nHeight)
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
 
-inline bool IsBlockVersion5(int nHeight) { return fTestNet || nHeight > 1446791; }
+inline bool IsBlockVersion5(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    return fTestNet || nHeight > 1446791;
+}
+
 inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
 inline int64_t GetMaxPoWWaitingTime()
