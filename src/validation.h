@@ -111,6 +111,7 @@ inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
     }
 }
 
+#define fTestNetWeightV2 false
 inline bool IsPoSIIProtocolV2(int nHeight)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
