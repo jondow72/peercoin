@@ -46,28 +46,8 @@
 #include <utility>
 #include <vector>
 
-class BlockValidationState;
-
-// Magi-specific reward functions
-
 static bool fTestNetWeightV2 = false; // Temporary declaration
-
-//int64_t MagiGetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
-int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-//int64_t MagiGetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
-double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex);
-int64_t GetPoSKernelPS(CBlockIndex* pindex = nullptr);
-bool IsMaintenance(const CBlockIndex* pindex);
-bool IsPoSIIProtocolV2(int nHeight);
-double GetDifficultyFromBits(unsigned int nBits);
-double GetPoSKernelPSV2(const CBlockIndex* blockindex = nullptr, int lookup = 72);
-double GetPoSKernelPSV3(const CBlockIndex* blockindex = nullptr);
-
-const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
-int64_t GetTargetSpacingWork(int nHeight);
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
-
+// Magi-specific reward functions
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
 static const int PRM_MAGI_POW_HEIGHT = 80000;
 static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block
@@ -148,34 +128,28 @@ inline bool IsProtocolV3(int nHeight)
     if (fTestNet) return true;
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
-static bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+
 inline bool IsBlockVersion5(int nHeight) { return fTestNet || nHeight > 1446791; }
 inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
-inline int64_t GetMaxPoWWaitingTime()
+inline int64 GetMaxPoWWaitingTime()
 {
     return (10 * 60); // Maximum time for PoW on hold
 }
 
-inline int64_t GetMaxPoSWaitingTime()
+inline int64 GetMaxPoSWaitingTime()
 {
     return (3 * 60); // Maximum time for PoS on hold
 }
 
-#ifdef USE_UPNP
-static const int fHaveUPnP = true;
-#else
-static const int fHaveUPnP = false;
-#endif
+//static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
+//static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
 
-// static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
-// static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
+static const int64 nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
+static const int64 nMaxClockDriftV2 = 5 * 60;           // 5 mins
+static const int64 nMaxClockDriftV3 = 30;               // 30 secs
 
-static const int64_t nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
-static const int64_t nMaxClockDriftV2 = 5 * 60;           // 5 mins
-static const int64_t nMaxClockDriftV3 = 30;               // 30 secs
-
-inline int64_t GetMaxClockDrift(int nHeight) 
+inline int64 GetMaxClockDrift(int nHeight) 
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 //    return ( (nHeight > HEIGHT_CHAIN_SWITCH) ? nMaxClockDriftV2 : nMaxClockDriftV1 ); 
@@ -187,12 +161,12 @@ inline int64_t GetMaxClockDrift(int nHeight)
     return nMaxClockDriftV1;
 }
 
-inline int64_t PastDrift(int64_t nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
-inline int64_t FutureDrift(int64_t nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
-inline int64_t FutureDriftCoinbaseV1(int64_t nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
-inline int64_t FutureDriftCoinbaseV2(int64_t nTime, int nHeight) { return ( nTime + 30 * 60 ); }
+inline int64 PastDrift(int64 nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
+inline int64 FutureDrift(int64 nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
+inline int64 FutureDriftCoinbaseV1(int64 nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
+inline int64 FutureDriftCoinbaseV2(int64 nTime, int nHeight) { return ( nTime + 30 * 60 ); }
 
-inline int64_t FutureDriftCoinbase(int64_t nTime, int nHeight) 
+inline int64 FutureDriftCoinbase(int64 nTime, int nHeight) 
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return FutureDriftCoinbaseV2(nTime, nHeight);
@@ -205,35 +179,39 @@ inline bool IsChainAtSwitchPoint(int nHeight) { return (nHeight == HEIGHT_CHAIN_
 inline bool IsChainRuleSwitchedOff(int nHeight) { return (nHeight > HEIGHT_CHAIN_SWITCH); }
 inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
-int64_t GetTargetSpacingWork(int nHeight);
-int64_t GetTargetSpacing(bool fProofOfStake);
-int64_t GetTargetTimespan(bool fProofOfStake);
+int64 GetTargetSpacingWork(int nHeight);
+int64 GetTargetSpacing(bool fProofOfStake);
+int64 GetTargetTimespan(bool fProofOfStake);
 
 
+// Settings
+extern int64 nTransactionFee;
+extern int64 nMinimumInputValue;
 
 
-// void GenerateMagi(bool fGenerate, CWallet* pwallet);
+void GenerateMagi(bool fGenerate, CWallet* pwallet);
 
-int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
-int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+bool CheckProofOfWork(uint256 hash, unsigned int nBits);
+int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
+int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
+int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
+unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
+unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 
-// void MagiMiner(CWallet *pwallet, bool fProofOfStake);
+void MagiMiner(CWallet *pwallet, bool fProofOfStake);
 
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
 double GetDifficultyFromBits(unsigned int nBits);
-double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
+double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
 bool IsChainInSwitch(const CBlockIndex* pindex_);
-int GetCoinbaseMaturity(int nHeight);
-//bool CheckMoneySupply(CBlockIndex* pindexPrev);
 
-// bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-bool IsBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfWorkBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfStakeBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsProofOfWorkBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+bool IsProofOfStakeBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
+
 
 //--------------------------------------------------------------------------------------------------------------
 
