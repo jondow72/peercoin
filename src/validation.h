@@ -1369,9 +1369,9 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // magi:
-int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
+CAmount GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+CAmount GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
