@@ -109,6 +109,7 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
         ( 0,	0x0e00670b )
     ;
 
+/*
 inline double wfa(double x)
 {
     return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
@@ -211,6 +212,7 @@ int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalE
 
     return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
 }
+*/
 
 // Whether the given coinstake is subject to new v0.3 protocol
 bool IsProtocolV03(unsigned int nTimeCoinStake)
