@@ -132,12 +132,12 @@ inline bool IsProtocolV3(int nHeight)
 inline bool IsBlockVersion5(int nHeight) { return fTestNet || nHeight > 1446791; }
 inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
-inline int64 GetMaxPoWWaitingTime()
+inline int64_t GetMaxPoWWaitingTime()
 {
     return (10 * 60); // Maximum time for PoW on hold
 }
 
-inline int64 GetMaxPoSWaitingTime()
+inline int64_t GetMaxPoSWaitingTime()
 {
     return (3 * 60); // Maximum time for PoS on hold
 }
@@ -145,11 +145,11 @@ inline int64 GetMaxPoSWaitingTime()
 //static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
 //static const uint256 hashGenesisBlockTestNet ("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
 
-static const int64 nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
-static const int64 nMaxClockDriftV2 = 5 * 60;           // 5 mins
-static const int64 nMaxClockDriftV3 = 30;               // 30 secs
+static const int64_t nMaxClockDriftV1 = 2 * 60 * 60;      // two hours
+static const int64_t nMaxClockDriftV2 = 5 * 60;           // 5 mins
+static const int64_t nMaxClockDriftV3 = 30;               // 30 secs
 
-inline int64 GetMaxClockDrift(int nHeight) 
+inline int64_t GetMaxClockDrift(int nHeight) 
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 //    return ( (nHeight > HEIGHT_CHAIN_SWITCH) ? nMaxClockDriftV2 : nMaxClockDriftV1 ); 
@@ -161,12 +161,12 @@ inline int64 GetMaxClockDrift(int nHeight)
     return nMaxClockDriftV1;
 }
 
-inline int64 PastDrift(int64 nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
-inline int64 FutureDrift(int64 nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
-inline int64 FutureDriftCoinbaseV1(int64 nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
-inline int64 FutureDriftCoinbaseV2(int64 nTime, int nHeight) { return ( nTime + 30 * 60 ); }
+inline int64_t PastDrift(int64_t nTime, int nHeight) { return ( nTime - GetMaxClockDrift(nHeight) ); }
+inline int64_t FutureDrift(int64_t nTime, int nHeight) { return ( nTime + GetMaxClockDrift(nHeight) ); }
+inline int64_t FutureDriftCoinbaseV1(int64_t nTime, int nHeight) { return ( nTime + nMaxClockDriftV1 ); }
+inline int64_t FutureDriftCoinbaseV2(int64_t nTime, int nHeight) { return ( nTime + 30 * 60 ); }
 
-inline int64 FutureDriftCoinbase(int64 nTime, int nHeight) 
+inline int64_t FutureDriftCoinbase(int64_t nTime, int nHeight) 
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fTestNet) return FutureDriftCoinbaseV2(nTime, nHeight);
@@ -1361,11 +1361,11 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // magi:
-int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
-unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
+int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees);
+int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
+unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 // peercoin:
 // CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
 // CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
