@@ -1394,6 +1394,13 @@ static bool fDebug = false;
 static bool fDebugMagi = false;
 static bool fDebugMagiPoS = false;
 
+static uint256S bnProofOfWorkLimit(~arith_uint256(0) >> 20);
+static uint256S bnProofOfStakeLimit(~arith_uint256(0) >> 20);
+
+static uint256S bnProofOfWorkLimitTestNet(~arith_uint256(0) >> 20);
+static uint256S bnProofOfStakeLimitTestNet(~arith_uint256(0) >> 20);
+
+
 double GetDifficultyFromBits(unsigned int nBits){
     int nShift = (nBits >> 24) & 0xff;
 
