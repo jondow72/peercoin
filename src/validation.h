@@ -184,6 +184,9 @@ inline bool IsChainAtSwitchPoint(int nHeight) { return (nHeight == HEIGHT_CHAIN_
 inline bool IsChainRuleSwitchedOff(int nHeight) { return (nHeight > HEIGHT_CHAIN_SWITCH); }
 inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
+int64_t GetTargetSpacingWork(int nHeight);
+int64_t GetTargetSpacing(bool fProofOfStake);
+int64_t GetTargetTimespan(bool fProofOfStake);
 //--------------------------------------------------------------------------------------------------------------
 
 class Chainstate;
