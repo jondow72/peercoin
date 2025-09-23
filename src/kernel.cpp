@@ -109,6 +109,109 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
         ( 0,	0x0e00670b )
     ;
 
+inline double wfa(double x)
+{
+    return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
+}
+
+inline double wfb(double x)
+{
+    return (1 / (1 + exp_n( (x-0.06)/0.06 ))) + 1;
+}
+
+inline double wfc(double x)
+{
+    return (1 / (1 + exp_n( (x-0.6)/0.3 )));
+}
+
+inline double wfaV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.045)/0.0075 ))) + 1;
+}
+
+inline double wfbV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.08)/0.08 ))) + 1;
+}
+
+inline double wfcV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.25)/0.125 )));
+}
+
+// Get time weight
+int64 GetMagiWeight_TestNet(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
+int64 GetMagiWeight_TestNetV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    if (fDebugMagiPoS) printf("@GetMagiWeight_TestNetV2 = %" PRI64d "\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge))));
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge)));
+}
+
+// Get time weight
+int64 GetMagiWeight(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+    if (fTestNet) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 4. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 4. / 8.177) ) * rStakeDays;
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
+// Get time weight
+int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF_V2) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfaV2(rMro)/wfbV2(rMro)/wfcV2(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
+
+    if (fDebugMagiPoS) printf("@GetMagiWeightV2 = %" PRI64d "\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge)));
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
 // Whether the given coinstake is subject to new v0.3 protocol
 bool IsProtocolV03(unsigned int nTimeCoinStake)
 {
