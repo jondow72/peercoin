@@ -142,6 +142,9 @@ inline double wfcV2(double x)
     return (1 / (1 + exp_n( (x-0.25)/0.125 )));
 }
 
+// Magi-specific functions
+static bool fDebugMagiPoS = false;
+
 // Get time weight
 int64_t GetMagiWeight_TestNet(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
@@ -176,6 +179,7 @@ int64_t GetMagiWeight_TestNetV2(int64_t nValueIn, int64_t nIntervalBeginning, in
 // Get time weight
 int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nWeight = 0;
     int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
 
@@ -196,6 +200,7 @@ int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nInt
 // Get time weight
 int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nWeight = 0;
     int64_t nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
 
