@@ -179,40 +179,6 @@ inline bool IsChainAtSwitchPoint(int nHeight) { return (nHeight == HEIGHT_CHAIN_
 inline bool IsChainRuleSwitchedOff(int nHeight) { return (nHeight > HEIGHT_CHAIN_SWITCH); }
 inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
-int64 GetTargetSpacingWork(int nHeight);
-int64 GetTargetSpacing(bool fProofOfStake);
-int64 GetTargetTimespan(bool fProofOfStake);
-
-
-// Settings
-extern int64 nTransactionFee;
-extern int64 nMinimumInputValue;
-
-
-void GenerateMagi(bool fGenerate, CWallet* pwallet);
-
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
-int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
-unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
-
-void MagiMiner(CWallet *pwallet, bool fProofOfStake);
-
-double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
-double GetDifficultyFromBits(unsigned int nBits);
-double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
-double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
-bool IsChainInSwitch(const CBlockIndex* pindex_);
-
-
-bool IsBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfWorkBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-bool IsProofOfStakeBlockInvalid(int nHeight0, int64 nTime, bool fProofOfStake, const CBlockIndex* pindexPrev);
-
-
 //--------------------------------------------------------------------------------------------------------------
 
 class Chainstate;
@@ -1394,9 +1360,15 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
+// magi:
+int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees);
+int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fLastBlock);
+int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex);
+unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
+unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 // peercoin:
-CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
-CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
+// CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
+// CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
 bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, unsigned int nTimeTx, bool isTrueCoinAge = true); // peercoin: get transaction coin age
 bool SignBlock(CBlock& block, const CWallet& keystore);
 bool CheckBlockSignature(const CBlock& block);
