@@ -1371,6 +1371,9 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
+const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
+const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
 // peercoin:
 // CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
 // CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
