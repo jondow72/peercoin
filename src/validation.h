@@ -1377,6 +1377,12 @@ unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBl
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
 const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
+double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
+double GetDifficultyFromBits(unsigned int nBits);
+double GetAnnualInterest_TestNet(int64 nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterest(int64 nNetWorkWeit, double rMaxAPR);
+double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0 = NULL);
+bool IsChainInSwitch(const CBlockIndex* pindex_);
 // peercoin:
 // CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
 // CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
