@@ -31,6 +31,7 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/hasher.h>
+#include <util/system.h>
 #include <util/translation.h>
 //#include <wallet/wallet.h>
 
@@ -79,6 +80,74 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // consensus/amount.h inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+
+inline bool IsMiningProofOfWork(int nHeight)
+{
+    return nHeight <= MAX_MAGI_POW_HEIGHT;
+}
+//inline bool IsMiningProofOfWork() { return true; }
+
+inline bool IsMiningProofOfStake(int nHeight ) 
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) return nHeight > 10;
+    if (nHeight <= BLOCK_REWARD_ADJT) return (nHeight > 6720); // two weeks
+    else return (nHeight > 10080); // three weeks
+}
+
+//#define FORK_BLOCK_REWARDS_V2_TESNT 1419402600
+#define FORK_BLOCK_REWARDS_V2_TESNT 0
+#define FORK_BLOCK_REWARDS_V2 1420650000
+#define HEIGHT_CHAIN_SWITCH 1606950
+#define HEIGHT_PROTOCOL_V3 1825100
+
+inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) {
+	   return (nTime0 > FORK_BLOCK_REWARDS_V2_TESNT);
+    } else {
+	   return (nTime0 > FORK_BLOCK_REWARDS_V2);
+    }
+}
+int fTestNetWeightV2;
+inline bool IsPoSIIProtocolV2(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) {
+    	if (nHeight > 40860) fTestNetWeightV2 = true;
+	   else fTestNetWeightV2 = false;
+	   return nHeight > 40780;
+    } else return (nHeight > 131300);
+}
+
+inline bool IsProtocolV3(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) return true;
+    return (nHeight > HEIGHT_PROTOCOL_V3);
+}
+
+inline bool IsBlockVersion5(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    return fTestNet || nHeight > 1446791;
+}
+
+inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
+
+inline int64 GetMaxPoWWaitingTime()
+{
+    return (10 * 60); // Maximum time for PoW on hold
+}
+
+inline int64 GetMaxPoSWaitingTime()
+{
+    return (3 * 60); // Maximum time for PoS on hold
+}
+
+
+
 
 //----------------------------------------------------------------------------
 
@@ -1262,9 +1331,11 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // magi:
+int64_t GetTargetSpacingWork(int nHeight);
 CAmount GetProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-CAmount GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
+// CAmount GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
