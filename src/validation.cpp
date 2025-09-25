@@ -1708,10 +1708,10 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
 
 
 
-static const int64 nTargetSpacingV3Work = 60 * 4;   // 4 min
+static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
 
 #define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
-int64 GetTargetSpacingWork(int nHeight)
+int64_t GetTargetSpacingWork(int nHeight)
 {
     return ( (nHeight >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) ? 
         nTargetSpacingV3Work : nTargetSpacingWork );
