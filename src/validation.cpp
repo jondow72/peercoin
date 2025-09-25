@@ -1563,6 +1563,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
 
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
     int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
@@ -2040,6 +2041,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fDebug) printf("nHeight: %d\n", pindexLast->nHeight);
     int DiffMode = 1;
     if (fTestNet) DiffMode = 1;
