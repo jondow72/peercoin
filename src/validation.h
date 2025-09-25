@@ -1262,6 +1262,7 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // magi:
+int64_t GetTargetSpacingWork(int nHeight);
 CAmount GetProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
