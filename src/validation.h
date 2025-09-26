@@ -80,6 +80,10 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
+inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
+
+
+
 //----------------------------------------------------------------------------
 
 class Chainstate;
