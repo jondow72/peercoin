@@ -3747,7 +3747,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (block.fChecked)
         return true;
 
-    // Check block header (PoW, etc.)
+    // Check block header
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW && !block.IsProofOfStake()))
         return false;
 
@@ -3794,7 +3794,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
     // Transaction validation (Magi-style)
-    CoinsViewCache view(pcoinsTip); // Use UTXO cache
+    CCoinsViewCache view(pcoinsTip); // Use UTXO cache
     int64_t nFees = 0;
     int64_t nValueIn = 0;
     int64_t nValueOut = 0;
@@ -3855,9 +3855,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // PoW reward check
     if (block.IsProofOfWork()) {
         CAmount nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+        // Assume pindexPrev is passed or accessible; fallback to block height estimation if needed
+        const CBlockIndex* pindexPrev = nullptr; // Must be set by caller or derived
+        int nHeight = (pindexPrev ? pindexPrev->nHeight + 1 : block.GetBlockHeader().nHeight);
         int64_t nPoWReward = IsPoWIIRewardProtocolV2(block.GetBlockTime())
             ? GetProofOfWorkRewardV2(pindexPrev, nFees, true)
-            : GetProofOfWorkReward(block.nBits, block.GetBlockTime());
+            : GetProofOfWorkReward(block.nBits, nHeight, nFees);
         if (block.vtx[0]->GetValueOut() > nPoWReward - nCoinbaseCost)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
@@ -3867,15 +3870,23 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 
     // PoS reward and coin age check
     if (block.IsProofOfStake()) {
-        uint64_t nCoinAge;
-        bool fTxGetCoinAge = IsPoSIIProtocolV2(block.GetBlockHeader().nHeight)
-            ? GetMagiWeightV2(block.vtx[1]->vin[0].prevout.nValue, block.GetBlockTime() - consensusParams.nStakeMinAge, block.GetBlockTime()) > 0
+        uint64_t nCoinAge = 0;
+        // Get input value for coinstake
+        const Coin& coin = view.AccessCoin(block.vtx[1]->vin[0].prevout);
+        if (coin.IsSpent())
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-input", "coinstake input spent");
+        int64_t nInputValue = coin.out.nValue;
+        const CBlockIndex* pindexPrev = nullptr; // Must be set by caller or derived
+        int nHeight = (pindexPrev ? pindexPrev->nHeight + 1 : block.GetBlockHeader().nHeight);
+        bool fTxGetCoinAge = IsPoSIIProtocolV2(nHeight)
+            ? GetMagiWeightV2(nInputValue, block.GetBlockTime() - consensusParams.nStakeMinAge, block.GetBlockTime()) > 0
             : CalculateCoinAge(*block.vtx[1], view, nCoinAge);
         if (!fTxGetCoinAge)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-coinage",
                 strprintf("CheckBlock() : unable to get coin age for coinstake %s", block.vtx[1]->GetHash().ToString()));
 
-        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, consensusParams);
+        const CBlockIndex* pindexPrevForReward = nullptr; // Must be set by caller
+        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindexPrevForReward);
         if (nStakeReward > nPoSReward)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
                 strprintf("CheckBlock() : stake reward exceeded %s > %s",
