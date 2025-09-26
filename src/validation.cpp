@@ -1400,7 +1400,7 @@ static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
 static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
 
 // Debug flag for Magi
-static bool fDebug = false;
+// static bool fDebug = false;
 static bool fDebugMagi = false; // Set via -debug=magi
 static bool fDebugMagiPoS = false; // Set via -debug=MagiPoS
 
