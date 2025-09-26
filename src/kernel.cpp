@@ -201,7 +201,7 @@ int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nInt
 // Get time weight
 int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
-    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+//    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nWeight = 0;
     int64_t nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
 
@@ -212,7 +212,7 @@ int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nI
 
     if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
 
-    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+//    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
     
     nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
 
