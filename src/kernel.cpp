@@ -14,6 +14,7 @@
 #include <validation.h>
 #include <random.h>
 #include <script/interpreter.h>
+#include <inttypes.h>
 
 #include <index/txindex.h>
 
@@ -171,7 +172,7 @@ int64_t GetMagiWeight_TestNetV2(int64_t nValueIn, int64_t nIntervalBeginning, in
     double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
     nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
 
-    if (fDebugMagiPoS) printf("@GetMagiWeight_TestNetV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge))));
+    if (fDebugMagiPoS) LogPrintf("@GetMagiWeight_TestNetV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge))));
 
     return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge)));
 }
@@ -215,7 +216,7 @@ int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nI
     
     nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
 
-    if (fDebugMagiPoS) printf("@GetMagiWeightV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge)));
+    if (fDebugMagiPoS) LogPrintf("@GetMagiWeightV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge)));
 
     return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
 }
