@@ -110,7 +110,7 @@ inline bool IsPoWIIRewardProtocolV2(unsigned int nTime0)
 	   return (nTime0 > FORK_BLOCK_REWARDS_V2);
     }
 }
-
+bool fTestNetWeightV2 = false;
 inline bool IsPoSIIProtocolV2(int nHeight)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
