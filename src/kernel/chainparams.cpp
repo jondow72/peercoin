@@ -241,6 +241,7 @@ public:
         consensus.powLimit =            uint256S("0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 28;
         consensus.bnInitialHashTarget = uint256S("00000007ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 29;
 
+fTestNetWeightV2 = false;
         consensus.nTargetTimespan = 7 * 24 * 60 * 60;  // one week
         consensus.nStakeTargetSpacing = 10 * 60;  // 10-minute block spacing
         consensus.nTargetSpacingWorkMax = 12 * consensus.nStakeTargetSpacing; // 2-hour
