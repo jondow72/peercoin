@@ -1389,7 +1389,15 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 }
 
 //------------------------------------------------------------------------------------------
+static const int64_t nTargetTimespan = 60 * 30;   // 30 min
 
+static const int64_t nTargetTimespanV3Stake = 60 * 30;   // 30 min
+static const int64_t nTargetTimespanV3Work = 60 * 16;   // 16 min
+
+static const int64_t nTargetSpacingV3Stake = 90;   // 1.5 min
+static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
+
+static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
 
 // Debug flag for Magi
 static bool fDebug = false;
