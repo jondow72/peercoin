@@ -3741,136 +3741,153 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams,
+                bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
-    // These are checks that are independent of context.
     if (block.fChecked)
         return true;
 
-    // Check that the header is valid (particularly PoW). This is mostly redundant with AcceptBlockHeader.
+    // Check block header (PoW, etc.)
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW && !block.IsProofOfStake()))
         return false;
 
-    // Signet only: check block solution
+    // Signet check
     if (consensusParams.signet_blocks && fCheckPOW && !CheckSignetBlockSolution(block, consensusParams)) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-signet-blksig", "signet block signature validation failure");
     }
 
-    // Check the merkle root.
+    // Check merkle root
     if (fCheckMerkleRoot && !CheckMerkleRoot(block, state)) {
         return false;
     }
 
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
+    if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT ||
+        ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-length", "size limits failed");
 
-    // First transaction must be coinbase, the rest must not be
+    // Check coinbase and coinstake
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-missing", "first tx is not coinbase");
-    for (unsigned int i = 1; i < block.vtx.size(); i++)
+    for (unsigned int i = 1; i < block.vtx.size(); i++) {
         if (block.vtx[i]->IsCoinBase())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-multiple", "more than one coinbase");
-
-    // peercoin: only the second transaction can be the optional coinstake
-    for (unsigned int i = 2; i < block.vtx.size(); i++)
-        if (block.vtx[i]->IsCoinStake())
+        if (i >= 2 && block.vtx[i]->IsCoinStake())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "coinstake in wrong position");
+    }
 
-    // peercoin: first coinbase output should be empty if proof-of-stake block
+    // Check coinbase output for PoS
     if (block.IsProofOfStake() && !block.vtx[0]->vout[0].IsEmpty())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-notempty", "coinbase output not empty in PoS block");
 
-    // Check coinbase timestamp
-    if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9))
+    // Check timestamps
+    if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) +
+        (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9)) {
+        LogPrintf("%lld\n", block.vtx[0]->nTime);
+        LogPrintf("%lld\n", block.GetBlockTime());
+        LogPrintf("%lld\n", MAX_FUTURE_BLOCK_TIME);
+        LogPrintf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
+    }
 
-    // Check coinstake timestamp
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1]->nTime ? (int64_t)block.vtx[1]->nTime : block.GetBlockTime()))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
-    // Magi: Calculate fees for reward validation
+    // Transaction validation (Magi-style)
+    CoinsViewCache view(pcoinsTip); // Use UTXO cache
     int64_t nFees = 0;
     int64_t nValueIn = 0;
     int64_t nValueOut = 0;
     int64_t nStakeReward = 0;
-    MapPrevTx mapInputs;
-    for (unsigned int i = 1; i < block.vtx.size(); i++) { // Skip coinbase
-        const CTransaction& tx = *block.vtx[i];
-        if (!tx.IsCoinStake()) {
-            bool fInvalid;
-            if (!tx.FetchInputs(txdb, mapQueuedChanges, true, false, mapInputs, fInvalid))
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-inputs", "failed to fetch inputs");
-            int64_t nTxValueIn = tx.GetValueIn(mapInputs);
-            int64_t nTxValueOut = tx.GetValueOut();
+    unsigned int nSigOps = 0;
+    bool fEnforceBIP30 = true; // Magi always enforces BIP30
+    bool fStrictPayToScriptHash = true; // Magi always enforces P2SH
+
+    for (const auto& tx : block.vtx) {
+        uint256 hashTx = tx->GetHash();
+
+        // BIP30: Prevent transaction overwrites
+        if (fEnforceBIP30) {
+            if (view.HaveCoin(COutPoint(hashTx, 0))) {
+                for (unsigned int i = 0; i < tx->vout.size(); i++) {
+                    if (!view.AccessCoin(COutPoint(hashTx, i)).IsSpent())
+                        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-txns-bip30", "transaction overwrites unspent output");
+                }
+            }
+        }
+
+        nSigOps += GetLegacySigOpCount(*tx);
+        if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops", "out-of-bounds SigOpCount");
+
+        if (tx->IsCoinBase()) {
+            nValueOut += tx->GetValueOut();
+        } else {
+            // Validate inputs
+            int64_t nTxValueIn = 0;
+            for (const CTxIn& txin : tx->vin) {
+                const Coin& coin = view.AccessCoin(txin.prevout);
+                if (coin.IsSpent())
+                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-txns-inputs-spent", "input spent");
+                nTxValueIn += coin.out.nValue;
+            }
+            int64_t nTxValueOut = tx->GetValueOut();
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
-            nFees += nTxValueIn - nTxValueOut;
-        } else {
-            bool fInvalid;
-            if (!tx.FetchInputs(txdb, mapQueuedChanges, true, false, mapInputs, fInvalid))
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-inputs", "failed to fetch coinstake inputs");
-            nStakeReward = tx.GetValueOut() - tx.GetValueIn(mapInputs);
+
+            if (fStrictPayToScriptHash) {
+                nSigOps += GetP2SHSigOpCount(*tx, view);
+                if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
+                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops", "out-of-bounds SigOpCount");
+            }
+
+            if (!tx->IsCoinStake())
+                nFees += nTxValueIn - nTxValueOut;
+            if (tx->IsCoinStake())
+                nStakeReward = nTxValueOut - nTxValueIn;
         }
+
+        // Check transaction timestamp
+        if (block.GetBlockTime() < (int64_t)tx->nTime)
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time", strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
     }
 
-    // Magi: Check coinbase reward for PoW blocks
+    // PoW reward check
     if (block.IsProofOfWork()) {
-        // Assume pindex->pprev is available for reward calculation (context needed)
+        CAmount nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
         int64_t nPoWReward = IsPoWIIRewardProtocolV2(block.GetBlockTime())
-            ? GetProofOfWorkRewardV2(pindex->pprev, nFees, true)
-            : GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-        if (block.vtx[0]->GetValueOut() > nPoWReward)
+            ? GetProofOfWorkRewardV2(pindexPrev, nFees, true)
+            : GetProofOfWorkReward(block.nBits, block.GetBlockTime());
+        if (block.vtx[0]->GetValueOut() > nPoWReward - nCoinbaseCost)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                     FormatMoney(block.vtx[0]->GetValueOut()),
                     FormatMoney(nPoWReward)));
     }
 
-    // Magi: Check stake reward for PoS blocks
+    // PoS reward and coin age check
     if (block.IsProofOfStake()) {
         uint64_t nCoinAge;
-        bool fTxGetCoinAge = IsPoSIIProtocolV2(pindex->nHeight)
-            ? block.vtx[1]->GetCoinAgeV2(txdb, nCoinAge)
-            : block.vtx[1]->GetCoinAge(txdb, nCoinAge);
+        bool fTxGetCoinAge = IsPoSIIProtocolV2(block.GetBlockHeader().nHeight)
+            ? GetMagiWeightV2(block.vtx[1]->vin[0].prevout.nValue, block.GetBlockTime() - consensusParams.nStakeMinAge, block.GetBlockTime()) > 0
+            : CalculateCoinAge(*block.vtx[1], view, nCoinAge);
         if (!fTxGetCoinAge)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-coinage",
-                strprintf("CheckBlock() : unable to get coin age for coinstake %s", block.vtx[1]->GetHash().ToString().c_str()));
-        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->pprev);
+                strprintf("CheckBlock() : unable to get coin age for coinstake %s", block.vtx[1]->GetHash().ToString()));
+
+        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, consensusParams);
         if (nStakeReward > nPoSReward)
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
                 strprintf("CheckBlock() : stake reward exceeded %s > %s",
-                    FormatMoney(nStakeReward),
-                    FormatMoney(nPoSReward)));
+                    FormatMoney(nStakeReward), FormatMoney(nPoSReward)));
     }
 
-    // Check transactions
-    for (const auto& tx : block.vtx) {
-        TxValidationState tx_state;
-        if (!CheckTransaction(*tx, tx_state)) {
-            assert(tx_state.GetResult() == TxValidationResult::TX_CONSENSUS);
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, tx_state.GetRejectReason(),
-                strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), tx_state.GetDebugMessage()));
-        }
-        // peercoin: check transaction timestamp
-        if (block.GetBlockTime() < (int64_t)tx->nTime)
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time",
-                strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
-    }
-
-    unsigned int nSigOps = 0;
-    for (const auto& tx : block.vtx) {
-        nSigOps += GetLegacySigOpCount(*tx);
-    }
-    if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops", "out-of-bounds SigOpCount");
+    // Check block signature
+    if (fCheckMerkleRoot && fCheckSignature && (block.IsProofOfStake() || !IsBTC16BIPsEnabled(block.GetBlockTime())) && !CheckBlockSignature(block))
+        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sign", strprintf("%s : bad block signature", __func__));
 
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
-
-    // peercoin: check block signature
-    if (fCheckMerkleRoot && fCheckSignature && (block.IsProofOfStake() || !IsBTC16BIPsEnabled(block.GetBlockTime())) && !CheckBlockSignature(block))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sign", strprintf("%s : bad block signature", __func__));
 
     return true;
 }
