@@ -61,6 +61,7 @@
 #include <../crypto/m7m.h>
 #include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
 #include <inttypes.h>
+#include <rpc/blockchain.h>
 
 #include <algorithm>
 #include <cassert>
