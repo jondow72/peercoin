@@ -1740,7 +1740,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
 
 
-/*
+
 #define MQW_TIME_COEFF_TESNT 1.0
 #define MQW_AVER_COEFF_TESNT 1.0
 #define MQW_EXPON_COEFF_TESNT 2.3
@@ -1821,7 +1821,7 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
      
     return bnNew.GetCompact();
 }
-*/
+
 #define MQW_TIME_COEFF 1.0
 #define MQW_AVER_COEFF 1.0
 #define MQW_EXPON_COEFF 0.15
