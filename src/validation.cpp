@@ -52,7 +52,7 @@
 #include <util/hasher.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
-#include <util/system.h>
+#include <util/system.h> // For fTestNet
 #include <util/time.h>
 #include <util/trace.h>
 #include <util/translation.h>

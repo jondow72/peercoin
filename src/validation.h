@@ -31,6 +31,7 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/hasher.h>
+#include <../util/system.h> // For fTestNet
 #include <util/translation.h>
 //#include <wallet/wallet.h>
 
