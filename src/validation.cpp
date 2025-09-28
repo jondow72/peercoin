@@ -63,6 +63,7 @@
 #include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
 #include <inttypes.h>
 #include <rpc/blockchain.h>
+#include <bignum.h>
 
 #include <algorithm>
 #include <cassert>
@@ -1390,7 +1391,11 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 }
 
 //------------------------------------------------------------------------------------------
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);
+static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
+static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
+static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 // Debug flag for Magi
 static bool fDebug = false;
