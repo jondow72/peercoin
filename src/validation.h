@@ -132,7 +132,7 @@ inline bool IsProtocolV3(int nHeight)
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
 
-
+inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
 int64_t GetTargetSpacingWork(int nHeight);
 
