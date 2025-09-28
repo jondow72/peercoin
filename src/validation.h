@@ -139,6 +139,13 @@ inline int64 GetMaxPoWWaitingTime()
     return (10 * 60); // Maximum time for PoW on hold
 }
 
+inline int64 GetMaxPoSWaitingTime()
+{
+    return (3 * 60); // Maximum time for PoS on hold
+}
+
+
+
 inline bool IsChainRuleSwitchedOff(int nHeight) { return (nHeight > HEIGHT_CHAIN_SWITCH); }
 inline unsigned int GetStakeTargetSpacing(int nHeight) { return IsProtocolV3(nHeight) ? 96 : 90; }
 
