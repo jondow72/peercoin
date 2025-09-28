@@ -63,7 +63,7 @@
 #include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
 #include <inttypes.h>
 #include <rpc/blockchain.h>
-#include <bignum.h>
+// #include <bignum.h>
 
 #include <algorithm>
 #include <cassert>
@@ -1390,12 +1390,14 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
-//------------------------------------------------------------------------------------------
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);
-static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
-static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
-static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
+//------------------------------------------------------------------------------------------
+
+static bool bnProofOfWorkLimit  = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
+static bool bnProofOfStakeLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
+
+static bool bnProofOfWorkLimitTestNet = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
+static bool bnProofOfStakeLimitTestNet = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
 
 // Debug flag for Magi
 static bool fDebug = false;
