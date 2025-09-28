@@ -1729,8 +1729,8 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
-	if (fDebug && GetBoolArg("-printcreation"))
-        printf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
+	if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", 
+                                  FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
 
 	if (fDebug && fDebugMagi) printf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
 				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
@@ -2053,6 +2053,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fDebug) printf("nHeight: %d\n", pindexLast->nHeight);
     int DiffMode = 1;
     if (fTestNet) DiffMode = 1;
