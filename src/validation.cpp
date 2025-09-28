@@ -4183,7 +4183,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, CCoinsViewCache* coinsView, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
     if (block.fChecked)
         return true;
@@ -4228,7 +4228,10 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         }
 
         // Calculate coin age
-        CCoinsViewCache view(pcoinsTip);
+        if (!coinsView) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-coinsview", "UTXO view unavailable");
+        }
+        CCoinsViewCache view(coinsView);
         int64_t nCoinAge = 0;
         if (!GetCoinAge(*block.vtx[1], view, nCoinAge)) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-coinage", "failed to calculate coin age");
