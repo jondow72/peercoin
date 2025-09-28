@@ -1612,23 +1612,23 @@ int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees) {
         return nSubsidy + nFees;
     }
     
-    /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
-	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
-				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
-	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
-
-	Remaining coins are: 404,995 (1.65%), that includes: 
-	Coin swap: 233,319 XMG (0.93%)
-	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
-
-	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
-	Some of posts regarding the coin swap: 
-	https://bitcointalk.org/index.php?topic=821170.0
-	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
-	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
-	
-	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
-    */
+//    	Notes of 11 premined blocks, totally: 1,237,505 XMG
+//	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
+//				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+//	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
+//
+//	Remaining coins are: 404,995 (1.65%), that includes: 
+//	Coin swap: 233,319 XMG (0.93%)
+//	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
+//
+//	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
+//	Some of posts regarding the coin swap: 
+//	https://bitcointalk.org/index.php?topic=821170.0
+//	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
+//	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
+//	
+//	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
+//
     if (nHeight <= 10 && !fTestNet) {
         nSubsidy = 112500 * COIN;
     } else if (nHeight <= PRM_MAGI_POW_HEIGHT_V2) {
@@ -1724,14 +1724,14 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
 
 
-
+/*
 #define MQW_TIME_COEFF_TESNT 1.0
 #define MQW_AVER_COEFF_TESNT 1.0
 #define MQW_EXPON_COEFF_TESNT 2.3
 #define WEIGHT_SCALE_TESNT 100.0
 unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
+    // Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
     int64_t nActualBlockSpacing, nActualTimeSpanMQW;
@@ -1805,7 +1805,7 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
      
     return bnNew.GetCompact();
 }
-
+*/
 #define MQW_TIME_COEFF 1.0
 #define MQW_AVER_COEFF 1.0
 #define MQW_EXPON_COEFF 0.15
@@ -1814,7 +1814,7 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
 #define WEIGHT_MAX 0.8
 unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
+    // Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
     int64_t nActualBlockSpacing, nActualTimeSpanMQW;
@@ -1923,7 +1923,7 @@ unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
 #define MQW_DUMMY_NUMBER 100
 unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
+    // Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
     int64 nActualBlockSpacing, nActualTimeSpanMQW;
