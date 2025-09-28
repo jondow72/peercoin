@@ -1804,7 +1804,7 @@ unsigned int MagiQuantumWave_TESNT(const CBlockIndex* pindexLast, bool fProofOfS
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks*GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks*GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW/3)
         nActualTimeSpanMQW = nTargetTimeSpanMQW/3;
@@ -1915,7 +1915,7 @@ unsigned int MagiQuantumWave(const CBlockIndex* pindexLast, bool fProofOfStake)
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW / 3) {
         nActualTimeSpanMQW = nTargetTimeSpanMQW / 3;
@@ -1942,8 +1942,8 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     // Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao
     if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
 
-    int64 nActualBlockSpacing, nActualTimeSpanMQW;
-    int64 nAveragedBlocks = 1, nTotPastBlocks = 13;
+    int64_t nActualBlockSpacing, nActualTimeSpanMQW;
+    int64_t nAveragedBlocks = 1, nTotPastBlocks = 13;
     CBigNum bnAverage;
     CBigNum bnAveragePrev;
 
@@ -2019,7 +2019,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
         }
     }
 
-    int64 nWeightTot = (int64_t)rWeightTot;
+    int64_t nWeightTot = (int64_t)rWeightTot;
 
     if (nWeightTot < 1) {
         nWeightTot = 1;
@@ -2030,7 +2030,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
     CBigNum bnNew(bnAverage);
 
-    int64 nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
 
     if (nActualTimeSpanMQW < nTargetTimeSpanMQW / 3) {
         nActualTimeSpanMQW = nTargetTimeSpanMQW / 3;
