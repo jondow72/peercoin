@@ -4183,7 +4183,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool ConnectBlock(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, CCoinsViewCache* coinsView, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
     if (block.fChecked)
         return true;
