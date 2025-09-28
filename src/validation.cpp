@@ -4183,117 +4183,94 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, CCoinsViewCache* coinsView, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
+    // These are checks that are independent of context.
+
     if (block.fChecked)
         return true;
 
-    // Header, signet, merkle root, size checks
+    // Check that the header is valid (particularly PoW).  This is mostly
+    // redundant with the call in AcceptBlockHeader.
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW && !block.IsProofOfStake()))
         return false;
 
+    // Signet only: check block solution
     if (consensusParams.signet_blocks && fCheckPOW && !CheckSignetBlockSolution(block, consensusParams)) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-signet-blksig", "signet block signature validation failure");
     }
 
+    // Check the merkle root.
     if (fCheckMerkleRoot && !CheckMerkleRoot(block, state)) {
         return false;
     }
 
+    // All potential-corruption validation must be done before we do any
+    // transaction validation, as otherwise we may mark the header as invalid
+    // because we receive the wrong transactions for it.
+    // Note that witness malleability is checked in ContextualCheckBlock, so no
+    // checks that use witness data may be performed here.
+
+    // Size limits
     if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-length", "size limits failed");
 
-    // Coinbase and coinstake checks
+    // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-missing", "first tx is not coinbase");
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-multiple", "more than one coinbase");
 
+    // peercoin: only the second transaction can be the optional coinstake
     for (unsigned int i = 2; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinStake())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "coinstake in wrong position");
 
+    // peercoin: first coinbase output should be empty if proof-of-stake block
     if (block.IsProofOfStake() && !block.vtx[0]->vout[0].IsEmpty())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-notempty", "coinbase output not empty in PoS block");
 
-    // PoS reward check (Magi-style)
-    if (block.IsProofOfStake()) {
-        if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinStake()) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "no coinstake transaction");
-        }
+    // Check coinbase timestamp
+    if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9))
+     printf("%lld\n", block.vtx[0]->nTime);
+     printf("%lld\n", block.GetBlockTime());
+     printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
+     printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
+    
+     // return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
 
-        CBlockIndex* pindexPrev = chainActive[pindex->nHeight - 1];
-        if (!pindexPrev) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
-        }
-
-        uint64_t nCoinAge = 0;
-        if (!GetCoinAge(*block.vtx[1], view, nCoinAge)) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-coinage", "failed to calculate coin age");
-        }
-
-        CAmount nExpectedReward = GetProofOfStakeReward(nCoinAge, pindexPrev, chainparams.GetConsensus());
-        CAmount nCoinstakeValue = block.vtx[1]->GetValueOut() - GetTxInValue(*block.vtx[1], view);
-        if (nCoinstakeValue < 0) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-input", "invalid coinstake inputs");
-        }
-
-        CAmount nFees = 0;
-        for (unsigned int i = 2; i < block.vtx.size(); i++) {
-            nFees += GetMinFee(*block.vtx[i], block.GetBlockTime());
-        }
-
-        if (nCoinstakeValue > nExpectedReward + nFees) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
-                                strprintf("ConnectBlock() : coinstake reward exceeded %s > %s, height=%d",
-                                          FormatMoney(nCoinstakeValue),
-                                          FormatMoney(nExpectedReward + nFees),
-                                          pindexPrev->nHeight));
-        }
-    }
-
-    // PoW reward check (Magi-style)
-    if (block.IsProofOfWork()) {
-        CAmount nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-        CBlockIndex* pindexPrev = chainActive[pindex->nHeight - 1];
-        if (!pindexPrev) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
-        }
-        CAmount nPoWReward = IsPoWIIRewardProtocolV2(pindexPrev->nTime) ?
-                             GetProofOfWorkRewardV2(pindexPrev, nCoinbaseCost, true) :
-                             GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nCoinbaseCost);
-        if (block.vtx[0]->GetValueOut() > nPoWReward) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                                strprintf("ConnectBlock() : coinbase reward exceeded %s > %s, height=%d",
-                                          FormatMoney(block.vtx[0]->GetValueOut()),
-                                          FormatMoney(nPoWReward),
-                                          pindexPrev->nHeight));
-        }
-    }
-
-    // Timestamps
-    if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9)) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
-    }
-
+    // Check coinstake timestamp
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1]->nTime ? (int64_t)block.vtx[1]->nTime : block.GetBlockTime()))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
-    // Transactions and sigops
+    // Check coinbase reward
+    CAmount nCoinbaseCost = 0;
+    if (block.IsProofOfWork())
+        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
+        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
+                   FormatMoney(block.vtx[0]->GetValueOut()),
+                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
+    // Check transactions
+    // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
         TxValidationState tx_state;
         if (!CheckTransaction(*tx, tx_state)) {
+            // CheckBlock() does context-free validation checks. The only
+            // possible failures are consensus failures.
             assert(tx_state.GetResult() == TxValidationResult::TX_CONSENSUS);
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, tx_state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), tx_state.GetDebugMessage()));
+            // peercoin: check transaction timestamp
+            if (block.GetBlockTime() < (int64_t)tx->nTime)
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time", strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
         }
-        if (block.GetBlockTime() < (int64_t)tx->nTime)
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-tx-time", strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
     }
-
     unsigned int nSigOps = 0;
-    for (const auto& tx : block.vtx) {
+    for (const auto& tx : block.vtx)
+    {
         nSigOps += GetLegacySigOpCount(*tx);
     }
     if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
@@ -4302,6 +4279,9 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
+    // peercoin: check block signature
+    // Only check block signature if check merkle root, c.f. commit 3cd01fdf
+    // rfc6: validate signatures of proof of stake blocks only after 0.8 fork
     if (fCheckMerkleRoot && fCheckSignature && (block.IsProofOfStake() || !IsBTC16BIPsEnabled(block.GetBlockTime())) && !CheckBlockSignature(block))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sign", strprintf("%s : bad block signature", __func__));
 
