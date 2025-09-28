@@ -61,6 +61,7 @@
 
 #include <../crypto/m7m.h>  // For Magi M7M M7Mv2
 #include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
+#include <inttypes.h>
 
 #include <algorithm>
 #include <cassert>
@@ -1563,6 +1564,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
 
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
     int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
