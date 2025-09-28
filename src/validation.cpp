@@ -1738,7 +1738,81 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
     return nSubsidy + nFees;
 }
 
+#define HEIGHT_LOOKUP_DEPTH 10
+unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProofOfStake)
+{
+    CBigNum bnTargetLimit = bnProofOfWorkLimit;
 
+    if(fProofOfStake)
+    {
+        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
+        bnTargetLimit = bnProofOfStakeLimit;
+    }
+
+    if (pindexLast == NULL)
+        return bnTargetLimit.GetCompact(); // genesis block
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
+    if (pindexPrev->pprev == NULL)
+        return bnTargetLimit.GetCompact(); // first block
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
+    if (pindexPrevPrev->pprev == NULL)
+        return bnTargetLimit.GetCompact(); // second block
+
+    int64 nTargetSpacing = fProofOfStake? GetStakeTargetSpacing(pindexLast->nHeight+1): GetTargetSpacingWork(pindexLast->nHeight+1);
+    int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+	if (nActualSpacing < 0)
+    {
+        if (IsProtocolV3(pindexLast->nHeight+1))
+        {
+            int nBlks = 1;
+            do {
+                pindexPrevPrev = GetLastBlockIndex(pindexPrevPrev->pprev, fProofOfStake);
+                if (pindexPrevPrev->pprev == NULL) break;
+                nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+                ++nBlks;
+            } while ( (nActualSpacing < 0) && (nBlks <= HEIGHT_LOOKUP_DEPTH) );
+            {
+                if (nActualSpacing < 0) 
+                    nActualSpacing = 1;
+                else
+                    nActualSpacing = nActualSpacing / nBlks;
+            }
+        } else
+            nActualSpacing = 1;
+    } else if (nActualSpacing > nTargetTimespan)
+		nActualSpacing = nTargetTimespan;
+
+    // ppcoin: target change every block
+    // ppcoin: retarget with exponential moving toward target spacing
+    CBigNum bnNew;
+    bnNew.SetCompact(pindexPrev->nBits);
+    int64 nInterval = nTargetTimespan / nTargetSpacing;
+    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= ((nInterval + 1) * nTargetSpacing);
+
+	/*
+	printf(">> Height = %d, fProofOfStake = %d, nInterval = %" PRId64 ", nTargetSpacing = %" PRId64 ", nActualSpacing = %" PRId64 "\n",
+		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);
+	printf(">> pindexPrev->GetBlockTime() = %" PRId64 ", pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %" PRId64 ", pindexPrevPrev->nHeight = %d\n",
+		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);
+	*/
+    if ( IsProtocolV3(pindexLast->nHeight+1) && (bnNew <= 0 || bnNew > bnTargetLimit) )
+        bnNew = bnTargetLimit;
+    else if (bnNew > bnTargetLimit)
+        bnNew = bnTargetLimit;
+
+    /// debug print
+    if (fDebugMagiPoS)
+    {
+        printf("GetNextTargetRequired RETARGET\n");
+        printf("nTargetSpacing = %" PRId64 "    nActualSpacing = %" PRId64 "    nInterval = %" PRId64 "\n", nTargetSpacing, nActualSpacing, nInterval);
+        printf("Before: %08x  %s\n", pindexPrev->nBits, CBigNum().SetCompact(pindexPrev->nBits).getuint256().ToString().c_str());
+        printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
+    }
+
+    return bnNew.GetCompact();
+}
 
 
 #define MQW_TIME_COEFF_TESNT 1.0
@@ -2070,81 +2144,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 }
 
 
-#define HEIGHT_LOOKUP_DEPTH 10
-unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProofOfStake)
-{
-    CBigNum bnTargetLimit = bnProofOfWorkLimit;
 
-    if(fProofOfStake)
-    {
-        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
-        bnTargetLimit = bnProofOfStakeLimit;
-    }
-
-    if (pindexLast == NULL)
-        return bnTargetLimit.GetCompact(); // genesis block
-
-    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
-    if (pindexPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // first block
-    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
-    if (pindexPrevPrev->pprev == NULL)
-        return bnTargetLimit.GetCompact(); // second block
-
-    int64 nTargetSpacing = fProofOfStake? GetStakeTargetSpacing(pindexLast->nHeight+1): GetTargetSpacingWork(pindexLast->nHeight+1);
-    int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-	if (nActualSpacing < 0)
-    {
-        if (IsProtocolV3(pindexLast->nHeight+1))
-        {
-            int nBlks = 1;
-            do {
-                pindexPrevPrev = GetLastBlockIndex(pindexPrevPrev->pprev, fProofOfStake);
-                if (pindexPrevPrev->pprev == NULL) break;
-                nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-                ++nBlks;
-            } while ( (nActualSpacing < 0) && (nBlks <= HEIGHT_LOOKUP_DEPTH) );
-            {
-                if (nActualSpacing < 0) 
-                    nActualSpacing = 1;
-                else
-                    nActualSpacing = nActualSpacing / nBlks;
-            }
-        } else
-            nActualSpacing = 1;
-    } else if (nActualSpacing > nTargetTimespan)
-		nActualSpacing = nTargetTimespan;
-
-    // ppcoin: target change every block
-    // ppcoin: retarget with exponential moving toward target spacing
-    CBigNum bnNew;
-    bnNew.SetCompact(pindexPrev->nBits);
-    int64 nInterval = nTargetTimespan / nTargetSpacing;
-    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-	/*
-	printf(">> Height = %d, fProofOfStake = %d, nInterval = %" PRId64 ", nTargetSpacing = %" PRId64 ", nActualSpacing = %" PRId64 "\n",
-		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);
-	printf(">> pindexPrev->GetBlockTime() = %" PRId64 ", pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %" PRId64 ", pindexPrevPrev->nHeight = %d\n",
-		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);
-	*/
-    if ( IsProtocolV3(pindexLast->nHeight+1) && (bnNew <= 0 || bnNew > bnTargetLimit) )
-        bnNew = bnTargetLimit;
-    else if (bnNew > bnTargetLimit)
-        bnNew = bnTargetLimit;
-
-    /// debug print
-    if (fDebugMagiPoS)
-    {
-        printf("GetNextTargetRequired RETARGET\n");
-        printf("nTargetSpacing = %" PRId64 "    nActualSpacing = %" PRId64 "    nInterval = %" PRId64 "\n", nTargetSpacing, nActualSpacing, nInterval);
-        printf("Before: %08x  %s\n", pindexPrev->nBits, CBigNum().SetCompact(pindexPrev->nBits).getuint256().ToString().c_str());
-        printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
-    }
-
-    return bnNew.GetCompact();
-}
 
 
 //----------------------------------------------------------------------------------------
