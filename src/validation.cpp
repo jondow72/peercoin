@@ -4183,7 +4183,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, CCoinsViewCache* coinsView, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool ConnectBlock(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
 {
     if (block.fChecked)
         return true;
@@ -4223,25 +4223,22 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "no coinstake transaction");
         }
 
+        CBlockIndex* pindexPrev = chainActive[pindex->nHeight - 1];
         if (!pindexPrev) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
         }
 
-        // Calculate coin age
-        if (!coinsView) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-coinsview", "UTXO view unavailable");
-        }
-        CCoinsViewCache view(coinsView);
-        int64_t nCoinAge = 0;
+        uint64_t nCoinAge = 0;
         if (!GetCoinAge(*block.vtx[1], view, nCoinAge)) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-coinage", "failed to calculate coin age");
         }
 
-        // Calculate expected PoS reward
-        CAmount nExpectedReward = GetProofOfStakeReward(nCoinAge, pindexPrev, consensusParams);
+        CAmount nExpectedReward = GetProofOfStakeReward(nCoinAge, pindexPrev, chainparams.GetConsensus());
+        CAmount nCoinstakeValue = block.vtx[1]->GetValueOut() - GetTxInValue(*block.vtx[1], view);
+        if (nCoinstakeValue < 0) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-input", "invalid coinstake inputs");
+        }
 
-        // Calculate actual coinstake reward
-        CAmount nCoinstakeValue = block.vtx[1]->GetValueOut() - block.vtx[1]->GetValueIn();
         CAmount nFees = 0;
         for (unsigned int i = 2; i < block.vtx.size(); i++) {
             nFees += GetMinFee(*block.vtx[i], block.GetBlockTime());
@@ -4249,7 +4246,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 
         if (nCoinstakeValue > nExpectedReward + nFees) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
-                                strprintf("CheckBlock() : coinstake reward exceeded %s > %s, height=%d",
+                                strprintf("ConnectBlock() : coinstake reward exceeded %s > %s, height=%d",
                                           FormatMoney(nCoinstakeValue),
                                           FormatMoney(nExpectedReward + nFees),
                                           pindexPrev->nHeight));
@@ -4259,6 +4256,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // PoW reward check (Magi-style)
     if (block.IsProofOfWork()) {
         CAmount nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+        CBlockIndex* pindexPrev = chainActive[pindex->nHeight - 1];
         if (!pindexPrev) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
         }
@@ -4267,7 +4265,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
                              GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nCoinbaseCost);
         if (block.vtx[0]->GetValueOut() > nPoWReward) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                                strprintf("CheckBlock() : coinbase reward exceeded %s > %s, height=%d",
+                                strprintf("ConnectBlock() : coinbase reward exceeded %s > %s, height=%d",
                                           FormatMoney(block.vtx[0]->GetValueOut()),
                                           FormatMoney(nPoWReward),
                                           pindexPrev->nHeight));
