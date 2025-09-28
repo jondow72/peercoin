@@ -4183,7 +4183,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
     if (block.fChecked)
         return true;
@@ -4217,16 +4217,14 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (block.IsProofOfStake() && !block.vtx[0]->vout[0].IsEmpty())
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-notempty", "coinbase output not empty in PoS block");
 
-    // Get previous block index
-    CBlockIndex* pindexPrev = chainActive.Tip();
-    if (!pindexPrev) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
-    }
-
     // PoS reward check (Magi-style)
     if (block.IsProofOfStake()) {
         if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinStake()) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "no coinstake transaction");
+        }
+
+        if (!pindexPrev) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
         }
 
         // Calculate coin age
@@ -4258,6 +4256,9 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // PoW reward check (Magi-style)
     if (block.IsProofOfWork()) {
         CAmount nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+        if (!pindexPrev) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-previndex", "previous block index unavailable");
+        }
         CAmount nPoWReward = IsPoWIIRewardProtocolV2(pindexPrev->nTime) ?
                              GetProofOfWorkRewardV2(pindexPrev, nCoinbaseCost, true) :
                              GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nCoinbaseCost);
