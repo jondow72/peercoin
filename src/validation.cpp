@@ -1384,6 +1384,30 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
+// Debug flag for Magi
+// static bool fDebug = false;
+static bool fDebugMagi = false; // Set via -debug=magi
+static bool fDebugMagiPoS = false; // Set via -debug=MagiPoS
+
+double GetDifficultyFromBits(unsigned int nBits){
+    int nShift = (nBits >> 24) & 0xff;
+
+    double dDiff =
+        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+    return dDiff;
+}
+
 #define M7Mv2_SCALE 2.545
 int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees) {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
