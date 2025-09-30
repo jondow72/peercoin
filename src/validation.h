@@ -132,7 +132,7 @@ inline bool IsProtocolV3(int nHeight)
     return (nHeight > HEIGHT_PROTOCOL_V3);
 }
 
-
+inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
 
 inline int64 GetMaxPoWWaitingTime()
 {
