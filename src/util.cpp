@@ -76,6 +76,8 @@ using namespace std;
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
 bool fDebug = false;
+bool fDebugMagi = false;
+bool fDebugMagiPoS = false;
 bool fDebugNet = false;
 bool fPrintToConsole = false;
 bool fPrintToDebugger = false;
@@ -89,6 +91,7 @@ bool fLogTimestamps = false;
 CMedianFilter<int64> vTimeOffsets(200,0);
 volatile bool fReopenDebugLog = false;
 bool fCachedPath[2] = {false, false};
+bool fTestNetWeightV2 = false;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
