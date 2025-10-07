@@ -1199,13 +1199,16 @@ void MapPort(bool)
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strMainNetDNSSeed[][2] = {
-    {"seedpeercoin", "seed.peercoin.net"},
-    {"seed", "seed.ppcoin.net"},
+    {"seed1", "magi-seed.xmg.network"},
+    {"seed2", "magi-seed.checkbug.com"},
+    {"seed3", "seed.magi.filoozom.com"},
     {NULL, NULL}
 };
 
 static const char *strTestNetDNSSeed[][2] = {
-    {"tseedpeercoin", "tseed.peercoin.net"},
+    {"tseed1", "test-magi-seed.xmg.network"},
+    {"tseed2", "test-magi-seed.checkbug.com"},
+    {"tseed3", "test-seed.magi.filoozom.com"},
     {NULL, NULL}
 };
 
@@ -1255,9 +1258,7 @@ void ThreadDNSAddressSeed()
 // Physical IP seeds: 32-bit IPv4 addresses: e.g. 178.33.22.32 = 0x201621b2
 unsigned int pnSeed[] =
 {
-    0x36a3b545, 0x3c1c26d8, 0x4031eb6d, 0x4d3463d1, 0x586a6854, 0x5da9ae65,
-    0x6deb7318, 0x9083fb63, 0x961bf618, 0xcabd2e4e, 0xcb766dd5, 0xdd514518,
-    0xdff010b8, 0xe9bb6044, 0xedb24a4c,
+    0x5f633951, 0x2d9307a5, 0x54f78eee, 0xa2f41d71,
 };
 
 void DumpAddresses()

@@ -10,6 +10,9 @@
 
 using namespace std;
 
+extern int nStakeMaxAge;
+extern int nStakeTargetSpacing;
+
 // Protocol switch time of v0.3 kernel protocol
 unsigned int nProtocolV03SwitchTime     = 1363800000;
 unsigned int nProtocolV03TestSwitchTime = 1359781000;

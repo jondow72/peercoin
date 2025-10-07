@@ -6,6 +6,10 @@
 
 #include "main.h"
 
+// To decrease granularity of timestamp
+// Supposed to be 2^n-1
+static const int STAKE_TIMESTAMP_MASK = 15;
+
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 6 * 60 * 60;
 extern unsigned int nModifierInterval;

@@ -5,6 +5,8 @@
 
 #include "main.h"
 #include "bitcoinrpc.h"
+#include "checkpoints.h"
+#include "kernel.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -26,6 +28,124 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return blockindex->GetBlockDifficulty();
 }
 
+
+double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
+{
+    int nPoSInterval = lookup;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    const CBlockIndex* pindex = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrevStake = NULL;
+
+    while (pindex && nStakesHandled < nPoSInterval)
+    {
+        if (pindex->IsProofOfStake())
+        {
+            dStakeKernelsTriedAvg += GetDifficulty(pindex) * 4294967296.0;
+            nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
+            pindexPrevStake = pindex;
+            nStakesHandled++;
+        }
+
+        pindex = pindex->pprev;
+    }
+    if (fDebugMagi)
+	printf("@GetPoSKernelPS -> stake blocks for average = %d\n", nStakesHandled);
+
+    double result = 0;
+
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
+
+    if (IsProtocolV3(nBestHeight))
+        result *= STAKE_TIMESTAMP_MASK + 1;
+
+    return result;
+}
+
+// hashrate = diff * 2^32/blocktime = diff * 4 294 967 296 / blocktime
+double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup)
+{
+    int nPoSInterval = lookup;
+    double diffTot = 0.;
+
+    const CBlockIndex* pindex0 = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == NULL || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+//    if (nActualBlockTime <= 0) {
+//	nActualBlockTimeTot = 0;
+//	nStakesHandled = 0;
+//    }
+//    else {
+      diffTot = GetDifficulty(pindexPrev);
+//    }
+    for(int i = 1; i < nPoSInterval; i++)
+    {
+	pindexPrev = pindexPrevPrev;
+	pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+	if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) break;
+	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+//	if (nActualBlockTime > 0)
+//	{
+	    diffTot += GetDifficulty(pindexPrev);
+	    nActualBlockTimeTot += nActualBlockTime;
+	    nStakesHandled++;
+//	}
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diffTot / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return diffTot*4294967296.0/double(nActualBlockTimeTot);
+}
+
+double GetPoSKernelPSV3(const CBlockIndex* blockindex)
+{
+    int nPoSInterval = 72;
+    double dStakeKernelsTriedAvg = 0., diff = 0.;
+
+    const CBlockIndex* pindex0 = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == NULL || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+    if (nActualBlockTime <= 0) {
+	nActualBlockTimeTot = 0;
+	nStakesHandled = 0;
+    }
+    else {
+      diff = GetDifficulty(pindexPrev);
+      dStakeKernelsTriedAvg = GetDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+    }
+    for(int i = 1; i < nPoSInterval; i++)
+    {
+	pindexPrev = pindexPrevPrev;
+	pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+	if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) break;
+	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+	if (nActualBlockTime > 0)
+	{
+	    diff += GetDifficulty(pindexPrev);
+	    dStakeKernelsTriedAvg += GetDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+	    nActualBlockTimeTot += nActualBlockTime;
+	    nStakesHandled++;
+	}
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diff / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return dStakeKernelsTriedAvg / double(nStakesHandled);
+}
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPrintTransactionDetail)
 {
