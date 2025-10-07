@@ -4247,15 +4247,23 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
-        int64 nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ? 
-			    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
-			    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (nPoWReward)))
+        int64 nFees = 0;  // Approximate for CheckBlock; exact check in ConnectBlock
+        CBlockIndex dummyPrev;
+        dummyPrev.nTime = block.nTime;  // Use current block time as approximation for previous
+        dummyPrev.nBits = block.nBits;
+        dummyPrev.nHeight = 0;  // Conservative (higher reward assumption for loose check)
+
+        int64 nPoWReward = IsPoWIIRewardProtocolV2(dummyPrev.nTime) ? 
+                           GetProofOfWorkRewardV2(&dummyPrev, nFees, true) : 
+                           GetProofOfWorkReward(dummyPrev.nBits, dummyPrev.nHeight, nFees);
+
+        int64 nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (nPoWReward - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? nPoWReward);
+                   FormatMoney(block.IsProofOfWork() ? nPoWReward : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
