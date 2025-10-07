@@ -4247,11 +4247,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
-        int64 nFees = 0;  // Approximate for CheckBlock; exact check in ConnectBlock
         CBlockIndex dummyPrev;
         dummyPrev.nTime = block.nTime;  // Use current block time as approximation for previous
         dummyPrev.nBits = block.nBits;
         dummyPrev.nHeight = 0;  // Conservative (higher reward assumption for loose check)
+
+        int64 nFees = 0;  // Approximate for CheckBlock; exact check in ConnectBlock
 
         int64 nPoWReward = IsPoWIIRewardProtocolV2(dummyPrev.nTime) ? 
                            GetProofOfWorkRewardV2(&dummyPrev, nFees, true) : 
