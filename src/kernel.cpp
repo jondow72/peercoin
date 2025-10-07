@@ -32,12 +32,169 @@ unsigned int nModifierInterval = MODIFIER_INTERVAL;
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
-    ( 0, 0x0e00670bu )
-    ( 19080, 0xad4e4d29u )
-    ( 30583, 0xdc7bf136u )
-    ( 99999, 0xf555cfd2u )
-    (219999, 0x91b7444du )
+    ( 0,	0xfd11f4e7 )
+    ( 9,	0x4fdba6a6 )
+    ( 19,	0x8300e57b )
+    ( 99,	0xb74d1791 )
+    ( 199,	0x52ae43ca )
+    ( 999,	0x47fecb89 )
+    ( 1999,	0x256f6e94 )
+    ( 9999,	0x66bb24af )
+    ( 19999,	0xadc5749e )
+    ( 29999,	0x839a4815 )
+    ( 37090,	0x5e04a01a )
+    ( 49999,	0x0d209374 )
+    ( 69999,	0xa73d2057 )
+    ( 89999,	0x53fd30d8 )
+    ( 109999,	0xd82859e7 )
+    ( 123838,	0xfb9d85a6 )
+    ( 200000,	0x3d7cdf21 )
+    ( 220000,	0x8c80b8d4 )
+    ( 240000,	0x94656c86 )
+    ( 260000,	0x9e61afaa )
+    ( 280000,	0x10eb79c1 )
+    ( 300000,	0x7f737a59 )
+    ( 310000,	0x514d70d5 )
+    ( 313600,	0x89c907ae )
+    ( 320000,	0xdb078b96 )
+    ( 350000,	0x66f13150 )
+    ( 380000,	0xc9114f5a )
+    ( 400000,	0xe6ac39b0 )
+    ( 420000,	0x656256d6 )
+    ( 450000,	0xdaf7197a )
+    ( 465000,	0x7ba85aa4 )
+    ( 480330,   0x8c5c6d17 )
+    ( 1420000,   0xb6c936a9 )
+    ( 1425000,   0x4961debb )
+    ( 1430000,   0xd9d792b0 )
+    ( 1435000,   0xfea1dbf1 )
+    ( 1440000,   0x8b307a8a )
+    ( 1445000,   0xd125289a )
+    ( 1446000,   0x1cf74c5c )
+    ( 1446770,   0x48d6b19f )
+    ( 1447500,   0x386c0d85 )
+    ( 1448292,   0xb92fa526 )
+    ( 4666656,   0xeae53d14 )
     ;
+
+// Hard checkpoints of stake modifiers to ensure they are deterministic (TestNet)
+static std::map<int, unsigned int> mapStakeModifierCheckpointsTestNet =
+    boost::assign::map_list_of
+        ( 0,	0x0e00670b )
+    ;
+
+inline double wfa(double x)
+{
+    return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
+}
+
+inline double wfb(double x)
+{
+    return (1 / (1 + exp_n( (x-0.06)/0.06 ))) + 1;
+}
+
+inline double wfc(double x)
+{
+    return (1 / (1 + exp_n( (x-0.6)/0.3 )));
+}
+
+inline double wfaV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.045)/0.0075 ))) + 1;
+}
+
+inline double wfbV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.08)/0.08 ))) + 1;
+}
+
+inline double wfcV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.25)/0.125 )));
+}
+
+// Get time weight
+int64 GetMagiWeight_TestNet(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
+int64 GetMagiWeight_TestNetV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    if (fDebugMagiPoS) printf("@GetMagiWeight_TestNetV2 = %" PRI64d "\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge))));
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60/2), (int64)(nStakeMaxAge)));
+}
+
+// Get time weight
+int64 GetMagiWeight(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+    if (fTestNet) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 4. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 4. / 8.177) ) * rStakeDays;
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
+// Get time weight
+int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    double nWeight = 0;
+    int64 nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF_V2) return 0;
+    
+    double rStakeDays = (double)(max((int64)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfaV2(rMro)/wfbV2(rMro)/wfcV2(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
+
+    if (fDebugMagiPoS) printf("@GetMagiWeightV2 = %" PRI64d "\n", max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge)));
+
+    return max((int64)0, min((int64)(nWeight * 24 * 60 * 60), (int64)nStakeMaxAge));
+}
+
+// Get time weight
+int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd)
+{
+    // Kernel hash weight starts from 0 at the min age
+    // this change increases active coins participating the hash and helps
+    // to secure the network when proof-of-stake difficulty is low
+
+    return min(nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd), (int64)nStakeMaxAge);
+}
 
 // Whether the given coinstake is subject to new v0.3 protocol
 bool IsProtocolV03(unsigned int nTimeCoinStake)
