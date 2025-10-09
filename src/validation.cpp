@@ -4241,16 +4241,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
-    int64 nFees = 0;
-    int64 nValueIn = 0;
-    int64 nValueOut = 0;
-    int64 nStakeReward = 0;
     if (block.IsProofOfWork())
-        int64 nPoWReward = (IsPoWIIRewardProtocolV2(pindexPrev->nTime)) ? 
-			    GetProofOfWorkRewardV2(pindexPrev, nFees, true) : 
-			    GetProofOfWorkReward(pindexPrev->nBits, pindexPrev->nHeight, nFees);
+        int64 nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ? 
+			    GetProofOfWorkRewardV2(block, block.nFees, true) : 
+			    GetProofOfWorkReward(block.nBits, block.nHeight, block.nFees);
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (nPoWReward - nCoinbaseCost) : 0))
+  if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (nPoWReward - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
