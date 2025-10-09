@@ -4241,10 +4241,10 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
-    int64 nFees = 0;
+    CAmount nFees = 0;
     if (block.IsProofOfWork())
         int64 nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ? 
-			    GetProofOfWorkRewardV2(block, nFees, true) : 
+//			    GetProofOfWorkRewardV2(block, nFees, true) : 
 			    GetProofOfWorkReward(block.nBits, block->nHeight, nFees);
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
   if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? ( nPoWReward - nCoinbaseCost ) : 0))
