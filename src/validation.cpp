@@ -4233,12 +4233,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
 
     // Check coinbase timestamp
     if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9))
-     printf("%lld\n", block.vtx[0]->nTime);
-     printf("%lld\n", block.GetBlockTime());
-     printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
-     printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
-    
-     // return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
+        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
 
     // Check coinstake timestamp
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1]->nTime ? (int64_t)block.vtx[1]->nTime : block.GetBlockTime()))
@@ -4247,24 +4242,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase reward
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
-        CBlockIndex dummyPrev;
-        dummyPrev.nTime = block.nTime;  // Use current block time as approximation for previous
-        dummyPrev.nBits = block.nBits;
-        dummyPrev.nHeight = 0;  // Conservative (higher reward assumption for loose check)
-
-        int64 nFees = 0;  // Approximate for CheckBlock; exact check in ConnectBlock
-
-        int64 nPoWReward = IsPoWIIRewardProtocolV2(dummyPrev.nTime) ? 
-                           GetProofOfWorkRewardV2(&dummyPrev, nFees, true) : 
-                           GetProofOfWorkReward(dummyPrev.nBits, dummyPrev.nHeight, nFees);
-
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE) ? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? nPoWReward : 0))
+        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                 strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
                    FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork() ? nPoWReward : 0)));
+                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
