@@ -82,9 +82,9 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
-CBlockIndex* pindexBest = NULL;
+// CBlockIndex* pindexBest = NULL;
 
-bool fTestNetWeightV2 = false; // temp declared
+// bool fTestNetWeightV2 = false; // temp declared
 
 
 
