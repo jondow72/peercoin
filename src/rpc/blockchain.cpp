@@ -129,6 +129,36 @@ double GetDifficulty(const CBlockIndex* blockindex, const CBlockIndex* tip)
 
 // Magi-specific functions
 static bool fDebugMagi = false;
+double GetMagiDifficulty(const CBlockIndex* blockindex)
+{
+    // Floating point number that is a multiple of the minimum difficulty,
+    // minimum difficulty = 1.0.
+    if (blockindex == NULL)
+    {
+        if (pindexBest == NULL)
+            return 1.0;
+        else
+            blockindex = GetLastBlockIndex(pindexBest, false);	// PoW
+    }
+
+    int nShift = (blockindex->nBits >> 24) & 0xff;
+
+    double dDiff =
+        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+
+    return dDiff;
+}
 
 double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
 {
@@ -143,7 +173,7 @@ double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
     {
         if (pindex->IsProofOfStake())
         {
-            dStakeKernelsTriedAvg += GetDifficulty(pindex) * 4294967296.0;
+            dStakeKernelsTriedAvg += GetMagiDifficulty(pindex) * 4294967296.0;
             nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
             pindexPrevStake = pindex;
             nStakesHandled++;
@@ -184,7 +214,7 @@ double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup)
 //	nStakesHandled = 0;
 //    }
 //    else {
-      diffTot = GetDifficulty(pindexPrev);
+      diffTot = GetMagiDifficulty(pindexPrev);
 //    }
     for(int i = 1; i < nPoSInterval; i++)
     {
@@ -194,7 +224,7 @@ double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup)
 	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 //	if (nActualBlockTime > 0)
 //	{
-	    diffTot += GetDifficulty(pindexPrev);
+	    diffTot += GetMagiDifficulty(pindexPrev);
 	    nActualBlockTimeTot += nActualBlockTime;
 	    nStakesHandled++;
 //	}
@@ -224,8 +254,8 @@ double GetPoSKernelPSV3(const CBlockIndex* blockindex)
 	nStakesHandled = 0;
     }
     else {
-      diff = GetDifficulty(pindexPrev);
-      dStakeKernelsTriedAvg = GetDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+      diff = GetMagiDifficulty(pindexPrev);
+      dStakeKernelsTriedAvg = GetMagiDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
     }
     for(int i = 1; i < nPoSInterval; i++)
     {
@@ -235,8 +265,8 @@ double GetPoSKernelPSV3(const CBlockIndex* blockindex)
 	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 	if (nActualBlockTime > 0)
 	{
-	    diff += GetDifficulty(pindexPrev);
-	    dStakeKernelsTriedAvg += GetDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+	    diff += GetMagiDifficulty(pindexPrev);
+	    dStakeKernelsTriedAvg += GetMagiDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
 	    nActualBlockTimeTot += nActualBlockTime;
 	    nStakesHandled++;
 	}
