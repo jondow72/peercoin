@@ -47,6 +47,7 @@
 #include <vector>
 
 // Magi-specific reward functions
+extern int nBestHeight;
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
 static const int PRM_MAGI_POW_HEIGHT = 80000;
 static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block

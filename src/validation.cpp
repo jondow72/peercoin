@@ -1456,6 +1456,8 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
 
 
 //------------------------------------------------------------------------------------------
+int nBestHeight = -1;
+
 static const int64_t nTargetTimespan = 60 * 30;   // 30 min
 
 static const int64_t nTargetTimespanV3Stake = 60 * 30;   // 30 min
