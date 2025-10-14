@@ -54,7 +54,6 @@
 
 #include <node/miner.h>
 #include <kernel.h>
-#include <checkpoints.h>
 #include <validation.h>
 #include <condition_variable>
 #include <memory>
