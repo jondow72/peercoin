@@ -85,7 +85,7 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // CBlockIndex* pindexBest = NULL;
 
 // bool fTestNetWeightV2 = false; // temp declared
-
+extern bool fTestNetWeightV2;
 
 
 inline bool IsMiningProofOfWork(int nHeight)
