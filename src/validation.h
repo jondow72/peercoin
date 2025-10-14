@@ -83,7 +83,7 @@ static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
 // script/script.h static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 // CBlockIndex* pindexBest = NULL;
-
+extern CBlockIndex* pindexBest;
 // bool fTestNetWeightV2 = false; // temp declared
 extern bool fTestNetWeightV2;
 
