@@ -1346,7 +1346,7 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 CAmount GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
-const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
+// const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
 const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
