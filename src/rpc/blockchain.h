@@ -11,7 +11,6 @@
 #include <sync.h>
 #include <util/fs.h>
 #include <validation.h>
-#include <kernel.h>
 
 #include <any>
 #include <stdint.h>

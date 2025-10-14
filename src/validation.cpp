@@ -1479,8 +1479,6 @@ static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 
 static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
 static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
 
-CBlockIndex* pindexBest = NULL;
-
 // Debug flag for Magi
 static bool fDebug = false;
 static bool fDebugMagi = false; // Set via -debug=magi
