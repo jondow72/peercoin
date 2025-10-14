@@ -1823,14 +1823,6 @@ int64_t GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* 
     return nSubsidy + nFees;
 }
 
-// ppcoin: find last block index up to pindex
-const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
-{
-    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
-        pindex = pindex->pprev;
-    return pindex;
-}
-
 // find the nearest PoS block (including pindex)
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex)
 {
