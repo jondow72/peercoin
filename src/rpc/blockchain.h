@@ -11,6 +11,7 @@
 #include <sync.h>
 #include <util/fs.h>
 #include <validation.h>
+#include <kernel.h>
 
 #include <any>
 #include <stdint.h>
@@ -36,6 +37,8 @@ static constexpr int NUM_GETBLOCKSTATS_PERCENTILES = 5;
  */
 double GetDifficulty(const CBlockIndex* blockindex, const CBlockIndex* tip);
 
+extern double GetPoWHashPS(int lookup = 120, int height = -1);
+extern double GetPoWMHashPS();
 extern double GetPoSKernelPS(const CBlockIndex* blockindex = NULL, int lookup = 72);
 extern double GetPoSKernelPSV2(const CBlockIndex* blockindex = NULL, int lookup = 72);
 extern double GetPoSKernelPSV3(const CBlockIndex* blockindex = NULL);
