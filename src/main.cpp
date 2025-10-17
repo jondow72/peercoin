@@ -4162,12 +4162,12 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1410566399;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 1780637u;
+        block.nNonce   = 1780637;
 
         if (fTestNet)
         {
-            block.nTime    = 1345090000;
-            block.nNonce   = 122894938;
+            block.nTime    = 1407209708;
+            block.nNonce   = 24141715;
         }
 
 #ifdef TESTING
