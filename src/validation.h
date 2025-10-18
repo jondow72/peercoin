@@ -1342,6 +1342,8 @@ using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 CAmount GetMagiProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 CAmount GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
+const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex);
 double GetDifficultyFromBitsV2(const CBlockIndex* pindex0, bool fPrintInfo=false);
 double GetDifficultyFromBits(unsigned int nBits);
 bool IsChainInSwitch(const CBlockIndex* pindex_);
