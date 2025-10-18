@@ -14,6 +14,7 @@
 #include <validation.h>
 #include <random.h>
 #include <script/interpreter.h>
+#include <inttypes.h>
 
 #include <index/txindex.h>
 
@@ -21,40 +22,43 @@
 
 using namespace std;
 
+extern int nStakeMaxAge;
+extern int nStakeTargetSpacing;
+
 // Protocol switch time of v0.3 kernel protocol
-unsigned int nProtocolV03SwitchTime     = 1363800000;
-unsigned int nProtocolV03TestSwitchTime = 1359781000;
+unsigned int nProtocolV03SwitchTime     = 1526519842;
+unsigned int nProtocolV03TestSwitchTime = 1526519842;
 // Protocol switch time of v0.4 kernel protocol
-unsigned int nProtocolV04SwitchTime     = 1399300000;
-unsigned int nProtocolV04TestSwitchTime = 1395700000;
+unsigned int nProtocolV04SwitchTime     = 1893456000;
+unsigned int nProtocolV04TestSwitchTime = 1893456000;
 // Protocol switch time of v0.5 kernel protocol
-unsigned int nProtocolV05SwitchTime     = 1461700000;
-unsigned int nProtocolV05TestSwitchTime = 1447700000;
+unsigned int nProtocolV05SwitchTime     = 1896134400;
+unsigned int nProtocolV05TestSwitchTime = 1896134400;
 // Protocol switch time of v0.6 kernel protocol
 // supermajority hardfork: actual fork will happen later than switch time
-const unsigned int nProtocolV06SwitchTime     = 1513050000; // Tue 12 Dec 03:40:00 UTC 2017
-const unsigned int nProtocolV06TestSwitchTime = 1508198400; // Tue 17 Oct 00:00:00 UTC 2017
+const unsigned int nProtocolV06SwitchTime     = 1898553600; // Tue 12 Dec 03:40:00 UTC 2017
+const unsigned int nProtocolV06TestSwitchTime = 1898553600; // Tue 17 Oct 00:00:00 UTC 2017
 // Protocol switch time for 0.7 kernel protocol
-const unsigned int nProtocolV07SwitchTime     = 1552392000; // Tue 12 Mar 12:00:00 UTC 2019
-const unsigned int nProtocolV07TestSwitchTime = 1541505600; // Tue 06 Nov 12:00:00 UTC 2018
+const unsigned int nProtocolV07SwitchTime     = 1901228400; // Tue 12 Mar 12:00:00 UTC 2019
+const unsigned int nProtocolV07TestSwitchTime = 1901228400; // Tue 06 Nov 12:00:00 UTC 2018
 // Switch time for new BIPs from bitcoin 0.16.x
-const uint32_t nBTC16BIPsSwitchTime           = 1569931200; // Tue 01 Oct 12:00:00 UTC 2019
-const uint32_t nBTC16BIPsTestSwitchTime       = 1554811200; // Tue 09 Apr 12:00:00 UTC 2019
+const uint32_t nBTC16BIPsSwitchTime           = 1903820400; // Tue 01 Oct 12:00:00 UTC 2019
+const uint32_t nBTC16BIPsTestSwitchTime       = 1903820400; // Tue 09 Apr 12:00:00 UTC 2019
 // Protocol switch time for v0.9 kernel protocol
-const unsigned int nProtocolV09SwitchTime     = 1591617600; // Mon  8 Jun 12:00:00 UTC 2020
-const unsigned int nProtocolV09TestSwitchTime = 1581940800; // Mon 17 Feb 12:00:00 UTC 2020
+const unsigned int nProtocolV09SwitchTime     = 1906498800; // Mon  8 Jun 12:00:00 UTC 2020
+const unsigned int nProtocolV09TestSwitchTime = 1906498800; // Mon 17 Feb 12:00:00 UTC 2020
 // Protocol switch time for v10 kernel protocol
-const unsigned int nProtocolV10SwitchTime     = 1635768000; // Mon  1 Nov 12:00:00 UTC 2021
-const unsigned int nProtocolV10TestSwitchTime = 1625140800; // Thu  1 Jul 12:00:00 UTC 2021
+const unsigned int nProtocolV10SwitchTime     = 1909090800; // Mon  1 Nov 12:00:00 UTC 2021
+const unsigned int nProtocolV10TestSwitchTime = 1909090800; // Thu  1 Jul 12:00:00 UTC 2021
 // Protocol switch time for v12 kernel protocol
-const unsigned int nProtocolV12SwitchTime     = 1700276331; // Sat 18 Nov 02:58:51 UTC 2023
-const unsigned int nProtocolV12TestSwitchTime = 1671060214; // Wed 14 Dec 11:23:34 UTC 2022
+const unsigned int nProtocolV12SwitchTime     = 1911769200; // Sat 18 Nov 02:58:51 UTC 2023
+const unsigned int nProtocolV12TestSwitchTime = 1911769200; // Wed 14 Dec 11:23:34 UTC 2022
 // Protocol switch time for v14 kernel protocol
-const unsigned int nProtocolV14SwitchTime     = 1717416000; // Mon  3 Jun 12:00:00 UTC 2024
-const unsigned int nProtocolV14TestSwitchTime = 1710720000; // Mon 18 Mar 00:00:00 UTC 2024
+const unsigned int nProtocolV14SwitchTime     = 1914447600; // Mon  3 Jun 12:00:00 UTC 2024
+const unsigned int nProtocolV14TestSwitchTime = 1914447600; // Mon 18 Mar 00:00:00 UTC 2024
 // Protocol switch time for v15 kernel protocol
-const unsigned int nProtocolV15SwitchTime     = 1741780800; // Wed 12 Mar 12:00:00 UTC 2025
-const unsigned int nProtocolV15TestSwitchTime = 1734004800; // Thu 12 Dec 12:00:00 UTC 2024
+const unsigned int nProtocolV15SwitchTime     = 1917039600; // Wed 12 Mar 12:00:00 UTC 2025
+const unsigned int nProtocolV15TestSwitchTime = 1917039600; // Thu 12 Dec 12:00:00 UTC 2024
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
@@ -108,6 +112,114 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
     boost::assign::map_list_of
         ( 0,	0x0e00670b )
     ;
+
+inline double wfa(double x)
+{
+    return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
+}
+
+inline double wfb(double x)
+{
+    return (1 / (1 + exp_n( (x-0.06)/0.06 ))) + 1;
+}
+
+inline double wfc(double x)
+{
+    return (1 / (1 + exp_n( (x-0.6)/0.3 )));
+}
+
+inline double wfaV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.045)/0.0075 ))) + 1;
+}
+
+inline double wfbV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.08)/0.08 ))) + 1;
+}
+
+inline double wfcV2(double x)
+{
+    return (1 / (1 + exp_n( (x-0.25)/0.125 )));
+}
+
+// Magi-specific functions
+static bool fDebugMagiPoS = false;
+
+// Get time weight
+int64_t GetMagiWeight_TestNet(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
+{
+    double nWeight = 0;
+    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
+}
+
+int64_t GetMagiWeight_TestNetV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
+{
+    double nWeight = 0;
+    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
+
+    if (fDebugMagiPoS) LogPrintf("@GetMagiWeight_TestNetV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge))));
+
+    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge)));
+}
+
+// Get time weight
+int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    double nWeight = 0;
+    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
+    
+    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+    if (fTestNet) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 4. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 4. / 8.177) ) * rStakeDays;
+
+    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
+}
+
+// Get time weight
+int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
+{
+//    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    double nWeight = 0;
+    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF_V2;
+
+    if (nValueIn >= MAX_MONEY_STAKE_REF_V2) return 0;
+    
+    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
+    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfaV2(rMro)/wfbV2(rMro)/wfcV2(rMro));
+
+    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
+
+//    if (fTestNet & !fTestNetWeightV2) return GetMagiWeight_TestNet(nValueIn, nIntervalBeginning, nIntervalEnd);
+    
+    nWeight = 42.2474 * ( pow(rEpf, -0.55 * (rStakeDays+2.) / 0.4719) - pow(rEpf, -0.6 * (rStakeDays+2.) / 0.4719) ) * rStakeDays;
+
+    if (fDebugMagiPoS) LogPrintf("@GetMagiWeightV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge)));
+
+    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
+}
 
 // Whether the given coinstake is subject to new v0.3 protocol
 bool IsProtocolV03(unsigned int nTimeCoinStake)
