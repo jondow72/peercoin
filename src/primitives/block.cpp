@@ -8,7 +8,7 @@
 #include <hash.h>
 #include <tinyformat.h>
 
-#include <../util/system.h>
+#include <../util/system.h> // For fTestNet
 #include <../crypto/m7m.h>
 
 #ifndef BEGIN
