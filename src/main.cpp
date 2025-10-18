@@ -1344,7 +1344,7 @@ int64 GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64 nFees, bool fL
 }
 
 #define M7Mv2_SCALE 2.545
-int64 GetMagiProofOfWorkReward(int nBits, int nHeight, int64 nFees)
+int64 GetProofOfWorkReward(int nBits, int nHeight, int64 nFees)
 {
     double nDiff = GetDifficultyFromBits(nBits);
 
@@ -1462,7 +1462,7 @@ double GetAnnualInterestV2(int64 nNetWorkWeit, double rMaxAPR, CBlockIndex* pind
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64 GetMagiProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
+int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex)
 {
     int64 nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
@@ -1480,7 +1480,7 @@ int64 GetMagiProofOfStakeReward(int64 nCoinAge, int64 nFees, CBlockIndex* pindex
     return nSubsidy + nFees;
 }
 
-
+/*
 int64 GetProofOfWorkReward(unsigned int nBits)
 {
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
@@ -1547,7 +1547,7 @@ void static PruneOrphanBlocks()
     mapOrphanBlocksByPrev.erase(it);
     mapOrphanBlocks.erase(hash);
 }
-
+*/
 
 static const int64 nTargetTimespan = 60 * 30;   // 30 min
 static const int64 nTargetSpacingWorkMax = 12 * STAKE_TARGET_SPACING; // 2-hour
@@ -3180,7 +3180,8 @@ bool CBlock::CheckBlock(CValidationState &state, bool fCheckPOW, bool fCheckMerk
 {
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
-
+    CBlockIndex* pindexPrev = (*mi).second;
+    int nHeight = pindexPrev->nHeight+1;
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"));
@@ -3229,18 +3230,21 @@ bool CBlock::CheckBlock(CValidationState &state, bool fCheckPOW, bool fCheckMerk
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
 
     // Check coinbase timestamp
-    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
-        return state.DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
+    if (GetBlockTime() > FutureDriftCoinbase((int64)vtx[0].nTime, nHeight))
+        return DoS(50, error("AcceptBlock() : coinbase timestamp is too early"));
 
     // Check coinstake timestamp
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(GetBlockTime(), (int64)vtx[1].nTime))
         return state.DoS(50, error("CheckBlock() : coinstake timestamp violation nTimeBlock=%" PRI64u" nTimeTx=%u", GetBlockTime(), vtx[1].nTime));
 
     // Check coinbase reward
-    if (vtx[0].GetValueOut() > (IsProofOfWork()? (GetProofOfWorkReward(nBits) - vtx[0].GetMinFee() + MIN_TX_FEE) : 0))
+        int64 nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ? 
+			    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
+			    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+    if (vtx[0].GetValueOut() > (IsProofOfWork()? (nPoWReward))
         return state.DoS(50, error("CheckBlock() : coinbase reward exceeded %s > %s", 
                    FormatMoney(vtx[0].GetValueOut()).c_str(),
-                   FormatMoney(IsProofOfWork()? GetProofOfWorkReward(nBits) : 0).c_str()));
+                   FormatMoney(IsProofOfWork()? nPoWReward));
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
