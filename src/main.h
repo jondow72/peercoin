@@ -10,7 +10,6 @@
 #include "sync.h"
 #include "net.h"
 #include "script.h"
-// #include "scrypt_mine.h"
 #include "hash_magi.h"
 
 #include <list>
@@ -1575,7 +1574,22 @@ public:
 
     uint256 GetHash() const
     {
-        return Hash(BEGIN(nVersion), END(nNonce));
+        if (fTestNet) {
+            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            /*
+            if(nTime < 1413590400) {
+                return hash_M7M(BEGIN(nVersion), END(nNonce));
+            } else {
+                return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            }
+            */
+        } else {
+            if(nTime < 1414330200) {
+                return hash_M7M(BEGIN(nVersion), END(nNonce));
+            } else {
+                return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            }
+        }
     }
 
     int64 GetBlockTime() const
