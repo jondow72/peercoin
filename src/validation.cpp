@@ -1688,7 +1688,7 @@ int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, boo
 }
 
 #define M7Mv2_SCALE 2.545
-int64_t GetMagiProofOfWorkReward(int nBits, int nHeight, int64_t nFees)
+int64_t GetProofOfWorkReward(int nBits, int nHeight, int64_t nFees)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     double nDiff = GetDifficultyFromBits(nBits);

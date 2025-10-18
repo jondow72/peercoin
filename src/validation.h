@@ -1339,7 +1339,7 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
 // magi:
-CAmount GetMagiProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
+CAmount GetProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
 CAmount GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex);
@@ -1349,7 +1349,7 @@ double GetDifficultyFromBits(unsigned int nBits);
 bool IsChainInSwitch(const CBlockIndex* pindex_);
 
 // peercoin:
-CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
+// CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
 CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
 bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, unsigned int nTimeTx, bool isTrueCoinAge = true); // peercoin: get transaction coin age
 bool SignBlock(CBlock& block, const CWallet& keystore);
