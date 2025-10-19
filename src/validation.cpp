@@ -3722,9 +3722,8 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature, int64_t nHeight)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature, int64 nHeight)
 {
-    int64_t nFees = 0;
     // These are checks that are independent of context.
 
     if (block.fChecked)
@@ -3790,8 +3789,8 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
         int64 nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ? 
-			    GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, true) : 
-			    GetProofOfWorkReward(block.nBits, int64_t nHeight, int64_t nFees);
+			    GetProofOfWorkRewardV2(nHeight, nFees, true) : 
+			    GetProofOfWorkReward(block.nBits, nHeight, nFees);
     if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (nPoWReward - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
             strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
