@@ -1459,6 +1459,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
 
 //------------------------------------------------------------------------------------------
 int nBestHeight = -1;
+CAmount nFees = 0;
 
 static const int64_t nTargetTimespan = 60 * 30;   // 30 min
 
@@ -3724,7 +3725,6 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
 
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature, int64_t nHeight)
 {
-    int64_t nFees = 0;
     // These are checks that are independent of context.
 
     if (block.fChecked)
@@ -3789,9 +3789,19 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ? 
-			    GetProofOfWorkRewardV2(nHeight, nFees, true) : 
-			    GetProofOfWorkReward(block.nBits, nHeight, nFees);
+
+    int64_t nPoWReward;
+    if (block.IsProofOfWork()) {
+        if (IsPoWIIRewardProtocolV2(block.nTime)) {
+            CBlockIndex tempIndex;
+            tempIndex.nHeight = nHeight;
+            nPoWReward = GetProofOfWorkRewardV2(&tempIndex, nFees, true);
+        } else {
+            nPoWReward = GetProofOfWorkReward(block.nBits, nHeight, nFees);
+        }
+    } else {
+        nPoWReward = 0;
+    }
     if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (nPoWReward - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
             strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
