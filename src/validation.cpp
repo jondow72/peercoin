@@ -3724,6 +3724,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
 
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature, int64 nHeight)
 {
+    int64 nFees = 0;
     // These are checks that are independent of context.
 
     if (block.fChecked)
