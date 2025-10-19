@@ -2391,7 +2391,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     // is enforced in ContextualCheckBlockHeader(); we wouldn't want to
     // re-enforce that rule here (at least until we make it impossible for
     // m_adjusted_time_callback() to go backward).
-    if (!CheckBlock(block, state, params.GetConsensus(), !fJustCheck, !fJustCheck)) {
+    if (!CheckBlock(block, state, params.GetConsensus(), !fJustCheck, !fJustCheck, pindex->nHeight)) {
         if (state.GetResult() == BlockValidationResult::BLOCK_MUTATED) {
             // We don't write down blocks to disk if they may have been
             // corrupted, so this should be impossible unless we're having hardware
@@ -3722,7 +3722,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
     return true;
 }
 
-bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
+bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature, int64 nHeight)
 {
     int64 nFees = 0;
     // These are checks that are independent of context.
@@ -3777,6 +3777,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
      printf("%lld\n", block.GetBlockTime());
      printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
      printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
+     printf("%lld\n", nHeight);
     
      // return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
 
@@ -3788,14 +3789,14 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
         nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-        int64 nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ? 
-			    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
-			    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (nPoWReward)))
+        int64 nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ? 
+			    GetProofOfWorkRewardV2(nHeight, nFees, true) : 
+			    GetProofOfWorkReward(block.nBits, nHeight, nFees);
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (nPoWReward - nCoinbaseCost) : 0))
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? nPoWReward);
+            strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
+                FormatMoney(block.vtx[0]->GetValueOut()),
+                FormatMoney(nPoWReward + nCoinbaseCost)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
