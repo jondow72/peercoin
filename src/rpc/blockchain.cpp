@@ -59,7 +59,7 @@
 #include <memory>
 #include <mutex>
 
-extern nFees;
+CAmount nFees = 0;
 
 using kernel::CCoinsStats;
 using kernel::CoinStatsHashType;
