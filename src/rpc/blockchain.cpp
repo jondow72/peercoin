@@ -59,6 +59,8 @@
 #include <memory>
 #include <mutex>
 
+extern nFees;
+
 using kernel::CCoinsStats;
 using kernel::CoinStatsHashType;
 
