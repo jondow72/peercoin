@@ -1516,6 +1516,9 @@ double g_rDiffAverEMA = 1.0;
 int64 g_lastPoWTime = GENESIS_TIME;
 int g_powBlocksSinceSwitch = 0;
 
+// Ported: GetProofOfWorkReward - Now time-based
+// Main Reward Function (V1) - Time-based, with exact exp_n/exp_n2
+//int64 GetProofOfWorkReward(int nBits, int nTime, int64 nFees)
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
