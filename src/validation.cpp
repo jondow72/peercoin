@@ -1456,7 +1456,7 @@ double GetDifficultyFromBits(unsigned int nBits){
 }
 
 // Time-Based Thresholds (Genesis: Sep 15, 2014; 60s/block)
-                                  1410566399
+//                                1410566399
 static const int64 GENESIS_TIME = 1410814224LL;
 static const int BLOCK_INTERVAL = 60;
 // Target Spacing Constants (updated with V3)
@@ -1518,11 +1518,13 @@ int g_powBlocksSinceSwitch = 0;
 
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+
     double nDiff = GetDifficultyFromBits(nBits);
 
     int64 nSubsidy = 0;
 
-    // Approximate height for internal calcs
+    // Approximate height for internal calcs: (nTime - GENESIS_TIME) / BLOCK_INTERVAL
     int64 approx_height = (static_cast<int64>(nTime) - GENESIS_TIME) / BLOCK_INTERVAL;
     if (approx_height < 0) approx_height = 0;
 
@@ -1533,22 +1535,37 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
             nSubsidy = 100000 * COIN;
             return nSubsidy + nFees;
         }
-        nSubsidy = (100 * COIN) >> (approx_height / 1051200);
+        nSubsidy = (100 * COIN) >> (approx_height / 1051200); // cut in half every 1.05 mil blocks ~2 years
         if (fDebugMagi) printf("@@GPoWR-testnet nHeight = %lld, nSubsidy = %"PRI64d", nDiff = %f\n", 
                approx_height, nSubsidy/COIN, nDiff);
         return nSubsidy + nFees;
     }
     
-    // Premine comment block (keep as-is)
-    /* ... (original notes) ... */
+    /*	Notes of 11 premined blocks, totally: 1,237,505 XMG
+	Coins burned: 720,000 XMG https://bchain.info/XMG/addr/93m4hAxmCcGXMfnjVPfNhWSjb69sDziGSY
+				  https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+	Coins used to push PoM campaign: 112,505 XMG (https://bitcointalk.org/index.php?topic=802681.0)
+
+	Remaining coins are: 404,995 (1.65%), that includes: 
+	Coin swap: 233,319 XMG (0.93%)
+	Leftover: 171,676 XMG (0.69%) - promotion (givaway + bounties for community members' contribution), staff salary
+
+	Coin swap: rule of swap - total coins swapped/Coins in circulation ~ 10% or less
+	Some of posts regarding the coin swap: 
+	https://bitcointalk.org/index.php?topic=821170.0
+	https://bitcointalk.org/index.php?topic=735170.msg8950501#msg8950501
+	https://bitcointalk.org/index.php?topic=735170.msg9111697#msg9111697
+	
+	Details: https://bitcointalk.org/index.php?topic=735170.msg9900074#msg9900074
+    */
     
-    // Premine
+    // Premine: First ~10 blocks/minutes
     if (nTime <= GENESIS_TIME + (10LL * BLOCK_INTERVAL) && !fTestNet)
     {
         nSubsidy = 112500 * COIN;
     }
-    // PoW-I
-    else if (nTime <= PRM_MAGI_POW_HEIGHT_V2_TIME)
+    // PoW-I: Up to PRM_MAGI_POW_HEIGHT_V2_TIME (~50k blocks, ~35 days after genesis)
+    else if (nTime <= PRM_MAGI_POW_HEIGHT_V2_TIME) // difficulty dependent PoW-I mining
     {
         if (nTime <= BLOCK_REWARD_ADJT_TIME) {
             nSubsidy = 495.05 * pow( (5.55243*(exp_n(-0.3*nDiff/15.762) - exp_n(-0.6*nDiff/15.762)))*nDiff, 0.5) / 8.61553;
@@ -1576,8 +1593,8 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
                         approx_height, nSubsidy/COIN, nDiff);
         }
     }
-    // PoW-II
-    else if (nTime <= END_MAGI_POW_HEIGHT_V2_TIME)
+    // PoW-II: Up to END_MAGI_POW_HEIGHT_V2_TIME (~5M blocks, ~9.5 years after genesis)
+    else if (nTime <= END_MAGI_POW_HEIGHT_V2_TIME) // difficulty dependent PoW-II mining
     {
         double nDiffcu = log(approx_height)*0.1;
         nSubsidy = 50 * pow( (5.55243*(exp_n(-0.3*nDiff/0.39*M7Mv2_SCALE) - exp_n(-0.6*nDiff/0.39*M7Mv2_SCALE)))*nDiff, 0.5) / 0.8456
@@ -1587,17 +1604,17 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
         if (fDebug && fDebugMagi) printf("@@GPoWR nHeight = %lld, nSubsidy = %"PRI64d", nDiff = %f\n", 
                     approx_height, nSubsidy/COIN, nDiff);
 
-        // Yearly decline
+        // Yearly decline (7%): Based on elapsed time (~525600 blocks/year)
         int64 seconds_since_genesis = static_cast<int64>(nTime) - GENESIS_TIME;
         int years = seconds_since_genesis / (525600LL * BLOCK_INTERVAL);
         nSubsidy *= pow(0.93, years);
     }
-    // Post-PoW
+    // Post-PoW: Minimal fee only (up to MAX_MAGI_POW_HEIGHT_TIME if you want a hard cap)
     else if (nTime <= MAX_MAGI_POW_HEIGHT_TIME) {
         nSubsidy = MIN_TX_FEE;
     }
     else {
-        nSubsidy = 0;
+        nSubsidy = 0;  // Or error/halt; beyond max
     }
 
     return nSubsidy + nFees;
