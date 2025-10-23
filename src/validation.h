@@ -1344,7 +1344,7 @@ using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 // magi:
 CAmount GetProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees);
 int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock);
-// CAmount GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
+CAmount GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 // const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
@@ -1359,7 +1359,7 @@ bool IsChainInSwitch(const CBlockIndex* pindex_);
 
 // peercoin:
 // CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
-CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
+// CAmount GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply);
 bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, unsigned int nTimeTx, bool isTrueCoinAge = true); // peercoin: get transaction coin age
 bool SignBlock(CBlock& block, const CWallet& keystore);
 bool CheckBlockSignature(const CBlock& block);

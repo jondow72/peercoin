@@ -1425,7 +1425,6 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 
     return nSubsidy;
 }
-*/
 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
@@ -1455,7 +1454,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
         LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
     return nSubsidy;
 }
-
+*/
 
 //------------------------------------------------------------------------------------------
 unsigned int nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 8hr for block# > 1446800, or 2hr 
@@ -1822,8 +1821,7 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-/*
-int64_t GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
     int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
@@ -1832,15 +1830,14 @@ int64_t GetMagiProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* 
 
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
-	if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%d\n", 
+	if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64" nBits=%d\n", 
                                   FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
 
-	if (fDebug && fDebugMagi) printf("@@GPoSR nHeight = %d, nSubsidy = %"PRId64", nCoinAge = %"PRId64", rAPR = %f\n", 
+	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64", nCoinAge = %" PRId64", rAPR = %f\n", 
 				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
 
     return nSubsidy + nFees;
 }
-*/
 
 // find the nearest PoS block (including pindex)
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex)
@@ -3112,6 +3109,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             // Check that transaction is BIP68 final
             // BIP68 lock checks (as opposed to nLockTime checks) must
             // be in ConnectBlock because they require the UTXO set
+            // BIP68 finality check (unchanged)
             prevheights.resize(tx.vin.size());
             for (size_t j = 0; j < tx.vin.size(); j++) {
                 prevheights[j] = view.AccessCoin(tx.vin[j].prevout).nHeight;
@@ -3147,6 +3145,23 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             }
             control.Add(std::move(vChecks));
         }
+    }
+
+    if (block.IsProofOfWork()) {  // PoW block
+        // const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex);  // Commented out as in original
+        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev ? pindex->pprev->nTime : 0)) ? 
+                             GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
+                             GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nBits : 0, pindex->pprev ? pindex->pprev->nHeight : 0, nFees);
+        // Check coinbase reward
+        CAmount nCoinbaseOut = block.vtx[0]->GetValueOut();  // Dereference shared_ptr
+        if (nCoinbaseOut > nPoWReward) {
+            LogPrintf("ERROR: ConnectBlock() : coinbase reward exceeded (actual=%" PRId64" vs calculated=%" PRId64", height=%i)",
+                      nCoinbaseOut, nPoWReward, pindex->pprev ? pindex->pprev->nHeight : -1);
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
+        }
+    }
+
+// ... (rest of ConnectBlock: control.Wait(), sigops verify, UpdateCoins loop, pindex updates, etc.)
 
         CTxUndo undoDummy;
         if (i > 0) {
@@ -4379,14 +4394,14 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
     // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
-    if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
+//    CAmount nCoinbaseCost = 0;
+//    if (block.IsProofOfWork())
+//        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+//    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
+//        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+//                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
+//                   FormatMoney(block.vtx[0]->GetValueOut()),
+//                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
