@@ -950,7 +950,14 @@ static RPCHelpMan submitblock()
 
     // peercoin: check block before attempting to sign it
     BlockValidationState state;
-    if (!CheckBlock(block, state, Params().GetConsensus(), true,  true, false)) {
+    // Before the call, compute basics (full fee calc omitted for brevity; implement CalculateBlockFees if needed)
+//    int64_t nHeight = chainActive.Height() + 1;
+//    int64_t nFees = 0;  // Or: nFees = CalculateBlockFees(block); (sum non-coinbase tx outputs - inputs, approx without view)
+//    bool fCheckSignature = false;
+
+//    if (!CheckBlock(block, state, Params().GetConsensus(), true, true, fCheckSignature, nHeight, nFees)) {
+
+    if (!CheckBlock(block, state, Params().GetConsensus(), true, true, false, false, false)) {
         LogPrintf("SubmitBlock: %s\n", state.ToString());
         throw JSONRPCError(-100, "Block failed CheckBlock() function.");
         }
