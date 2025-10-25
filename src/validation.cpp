@@ -3145,6 +3145,23 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             }
             control.Add(std::move(vChecks));
         }
+    }
+
+    if (block.IsProofOfWork()) {  // PoW block
+        // const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex);  // Commented out as in original
+        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev ? pindex->pprev->nTime : 0)) ? 
+                             GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
+                             GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nBits : 0, pindex->pprev ? pindex->pprev->nHeight : 0, nFees);
+        // Check coinbase reward
+        CAmount nCoinbaseOut = block.vtx[0]->GetValueOut();  // Dereference shared_ptr
+        if (nCoinbaseOut > nPoWReward) {
+            LogPrintf("ERROR: ConnectBlock() : coinbase reward exceeded (actual=%" PRId64" vs calculated=%" PRId64", height=%i)",
+                      nCoinbaseOut, nPoWReward, pindex->pprev ? pindex->pprev->nHeight : -1);
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
+        }
+    }
+
+// ... (rest of ConnectBlock: control.Wait(), sigops verify, UpdateCoins loop, pindex updates, etc.)
 
         CTxUndo undoDummy;
         if (i > 0) {
@@ -4377,14 +4394,14 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
     // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
-    if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
+//    CAmount nCoinbaseCost = 0;
+//    if (block.IsProofOfWork())
+//        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
+//    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits, block.GetBlockTime()) - nCoinbaseCost) : 0))
+//        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+//                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
+//                   FormatMoney(block.vtx[0]->GetValueOut()),
+//                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits, block.GetBlockTime()) : 0)));
     // Check transactions
     // Must check for duplicate inputs (see CVE-2018-17144)
     for (const auto& tx : block.vtx) {
