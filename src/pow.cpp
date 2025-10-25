@@ -775,7 +775,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     if (nWeightTot < 1) {
         nWeightTot = 1;
     }
-    if (fDebug) printf("nWeightTot: %d\n", nWeightTot);
+    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
 
     bnAverage /= nWeightTot;
 
