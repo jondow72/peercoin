@@ -1458,24 +1458,9 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
 
 
 //------------------------------------------------------------------------------------------
-unsigned int nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 8hr for block# > 1446800, or 2hr 
-unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
-unsigned int nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
 
-int64_t nStakeSplitThreshold = 500; // PoS stake splitting threshold
-int64_t nStakeCombineThreshold = nStakeSplitThreshold / 2; // PoS stake combining threshold
 
-static const int64_t nTargetTimespan = 60 * 30;   // 30 min
-
-static const int64_t nTargetTimespanV3Stake = 60 * 30;   // 30 min
-static const int64_t nTargetTimespanV3Work = 60 * 16;   // 16 min
-
-static const int64_t nTargetSpacingV3Stake = 90;   // 1.5 min
-static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
-
-static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
-
-int64_t nChainStartTime = 1407209706;
+//int64_t nChainStartTime = 1407209706;
 
 int nBestHeight = -1;
 
@@ -1485,18 +1470,7 @@ uint256 hashBestChain = uint256();  // Explicitly constructs a zero-initialized 
 CBlockIndex* pindexBest = NULL;
 int64_t nTimeBestReceived = 0;
 
-// Replace:
-// static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);
-// static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
-// static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
-// static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
-
-static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
-static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
-
-static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
-static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
 
 // Debug flag for Magi
 static bool fDebug = false;
