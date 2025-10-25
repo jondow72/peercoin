@@ -12,8 +12,8 @@
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static constexpr CAmount COIN = 1000000;
-static constexpr CAmount CENT = 10000;
+static constexpr CAmount COIN = 100000000;
+static constexpr CAmount CENT = 1000000;
 
 static const CAmount MIN_TX_FEE_PREV7 = CENT;
 static const CAmount MIN_TX_FEE = .0001 * COIN;
