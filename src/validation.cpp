@@ -1425,7 +1425,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 
     return nSubsidy;
 }
-
+*/
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
 {
@@ -1454,7 +1454,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
         LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
     return nSubsidy;
 }
-*/
+
 
 
 //------------------------------------------------------------------------------------------
@@ -1822,7 +1822,7 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
+/*int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
 {
     int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
     double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
@@ -1839,7 +1839,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
     return nSubsidy + nFees;
 }
-
+*/
 // find the nearest PoS block (including pindex)
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex)
 {
