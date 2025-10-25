@@ -36,8 +36,8 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 //static const int64_t MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
 static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
-static const int64_t MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
-static const int64_t MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
+static const CAmount MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
+static const CAmount MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
 
 // consensus/amount.h static const int64_t MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
