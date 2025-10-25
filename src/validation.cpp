@@ -3145,7 +3145,6 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             }
             control.Add(std::move(vChecks));
         }
-    }
 
     if (block.IsProofOfWork()) {  // PoW block
         // const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex);  // Commented out as in original
