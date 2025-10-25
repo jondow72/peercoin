@@ -12,6 +12,19 @@
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
+static constexpr CAmount COIN = 1000000;
+static constexpr CAmount CENT = 10000;
+
+static const CAmount MIN_TX_FEE_PREV7 = CENT;
+static const CAmount MIN_TX_FEE = .0001 * COIN;
+static const CAmount PERKB_TX_FEE = MIN_TX_FEE;
+static const CAmount MIN_TXOUT_AMOUNT = CENT;
+static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
+static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
+static const std::string CURRENCY_UNIT = "PPC";
+static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
+
+
 // Magi-specific reward functions
 extern int nBestHeight;
 static const int MAX_MAGI_POW_HEIGHT = 25000000;
@@ -36,8 +49,8 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 //static const int64_t MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
 static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
-static const CAmount MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
-static const CAmount MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
+static const int64_t MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
+static const int64_t MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
 
 // consensus/amount.h static const int64_t MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
@@ -68,19 +81,6 @@ static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
-
-
-static constexpr CAmount COIN = 1000000;
-static constexpr CAmount CENT = 10000;
-
-static const CAmount MIN_TX_FEE_PREV7 = CENT;
-static const CAmount MIN_TX_FEE = .0001 * COIN;
-static const CAmount PERKB_TX_FEE = MIN_TX_FEE;
-static const CAmount MIN_TXOUT_AMOUNT = CENT;
-static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
-static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
-static const std::string CURRENCY_UNIT = "PPC";
-static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
 /** No amount larger than this (in satoshi) is valid.
  *
