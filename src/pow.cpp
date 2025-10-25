@@ -7,14 +7,18 @@
 
 #include <arith_uint256.h>
 #include <chain.h>
+#include <consensus/amount.h>
 #include <primitives/block.h>
 #include <uint256.h>
-#include <util/system.h> // For fTestNet
 
 #include <bignum.h>
 #include <chainparams.h>
 #include <kernel.h>
 #include <atomic>
+#include <util/system.h> // For fTestNet
+#include <rpc/blockchain.h>
+#include <inttypes.h>
+
 
 static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
 static int64_t nDAAHalfLife = 24 * 60 * 60;
@@ -316,6 +320,23 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     return bnNew.GetCompact();
 }
 */
+
+// Replace:
+// static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);
+// static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
+
+// static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
+// static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
+
+static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
+static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
+
+static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
+static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
+
+// Debug flag for Magi
+static bool fDebug = false;
+static bool fDebugMagiPoS = false; // Set via -debug=MagiPoS
 
 #define HEIGHT_LOOKUP_DEPTH 10
 unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProofOfStake)
