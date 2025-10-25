@@ -1853,26 +1853,6 @@ const CBlockIndex* GetLastPoWBlockIndex(const CBlockIndex* pindex)
 }
 
 
-
-unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
-{
-    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-    if (fDebug) printf("nHeight: %d\n", pindexLast->nHeight);
-    int DiffMode = 1;
-    if (fTestNet) DiffMode = 1;
-    else if (pindexLast->nHeight+1 >= 33500 && pindexLast->nHeight+1 < HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) DiffMode = 2;
-    else if (pindexLast->nHeight+1 >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT && pindexLast->nHeight+1 < HEIGHT_CHAIN_SWITCH-2) DiffMode = 3;
-    else if (pindexLast->nHeight+1 >= HEIGHT_CHAIN_SWITCH-2 && pindexLast->nHeight+1 < 1606988) DiffMode = 2;
-    else if (pindexLast->nHeight+1 >= 1606988) DiffMode = 4;
-    
-    if (DiffMode == 1) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
-    else if (DiffMode == 2) return MagiQuantumWave(pindexLast, fProofOfStake);
-    else if (DiffMode == 3) return GetNextTargetRequired_v3(pindexLast, fProofOfStake);
-    else if (DiffMode == 4) return MagiQuantumWave_v2(pindexLast, fProofOfStake);
-    return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
-}
-
-
 #define BLOCK_VALID_CHECK_INIT_HEIGHT 1481500
 bool IsBlockInvalid(int nHeight0, int64_t nTime, bool fProofOfStake, const CBlockIndex* pindexPrev)
 {

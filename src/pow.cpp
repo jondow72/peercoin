@@ -804,6 +804,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, const Consensus::Params& params)
 {
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
     if (fDebug) printf("nHeight: %d\n", pindexLast->nHeight);
     int DiffMode = 1;
     if (fTestNet) DiffMode = 1;
