@@ -22,8 +22,7 @@
 
 using namespace std;
 
-extern int nStakeMaxAge;
-extern int nStakeTargetSpacing;
+unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
 
 // Protocol switch time of v0.3 kernel protocol
 unsigned int nProtocolV03SwitchTime     = 1526519842;
