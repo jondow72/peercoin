@@ -18,7 +18,7 @@ static constexpr CAmount CENT = 1000000;
 static const CAmount MIN_TX_FEE_PREV7 = CENT;
 static const CAmount MIN_TX_FEE = .0001 * COIN;
 static const CAmount PERKB_TX_FEE = MIN_TX_FEE;
-static const CAmount MIN_TXOUT_AMOUNT = CENT;
+static const CAmount MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 static const CAmount MAX_MINT_PROOF_OF_WORK = 112500 * COIN;
 static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
 static const std::string CURRENCY_UNIT = "PPC";
@@ -43,7 +43,7 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 // net_processing.cpp static const unsigned int MAX_INV_SZ = 50000;
 // consensus/amount.h static static const int64_t COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
 // consensus/amount.h static static const int64_t MIN_TX_FEE = .0001 * COIN;
-// consensus/amount.h static static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
+static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 // consensus/amount.h static static const int64_t MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
 //static const int64_t MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
 //static const int64_t MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
