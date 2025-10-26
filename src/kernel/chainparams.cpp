@@ -118,14 +118,14 @@ public:
         consensus.powLimit =            uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~arith_uint256(0) >> 20;
         consensus.bnInitialHashTarget = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); //  ~arith_uint256(0) >> 20;
 
-        consensus.nTargetTimespan = 7 * 24 * 60 * 60;  // one week
+        consensus.nTargetTimespan = 60 * 30;   // 30 min
         consensus.nStakeTargetSpacing = 90;		// 90 sec PoS block spacing
         consensus.nTargetSpacingWorkMax = 12 * consensus.nStakeTargetSpacing; // 2-hour
         consensus.nPowTargetSpacing = consensus.nStakeTargetSpacing;
-        consensus.nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 8hr for block# > 1446800, or 2hr 
+        consensus.nStakeMinAge = 60 * 60 * 2;	// minimum age for coin age: 8hr for block# > 1446800, or 2hr
         consensus.nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: 30 days
-        consensus.nModifierInterval = 6 * 60 * 60; // Modifier interval: time to elapse before new modifier is computed
-        consensus.nCoinbaseMaturity = 500;
+        consensus.nModifierInterval = 10 * 60; // 10 min
+        consensus.nCoinbaseMaturity = 100;
 
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
