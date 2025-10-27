@@ -1775,7 +1775,7 @@ double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-static double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR) 
+double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR) 
 {
     double rAPR, rWeit = 20000.;
     // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);  // Uncomment for testnet
@@ -1784,7 +1784,7 @@ static double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-static double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0) 
+double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0) 
 {
     double rAPR, rWeit = 500000.;  // Higher threshold for mature chain
     // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
@@ -2657,22 +2657,25 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         }
 
     int64_t nStakeReward = 0;
+    int nHeight = pindex->nHeight;  // Declare nHeight from pindex
     if (block.IsProofOfStake()) {  // PoS block
         // ppcoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge = 0;
         bool fTxGetCoinAge = false;
         if (IsPoSIIProtocolV2(nHeight)) {
-            fTxGetCoinAge = block.vtx[1].GetCoinAgeV2(view, nCoinAge, nHeight);  // Updated: Use view, pass height
+            // Dereference shared_ptr: (*block.vtx[1]).GetCoinAgeV2(view, nCoinAge, nHeight);
+            fTxGetCoinAge = (*block.vtx[1]).GetCoinAgeV2(view, nCoinAge, nHeight);
         } else {
-            fTxGetCoinAge = block.vtx[1].GetCoinAge(view, nCoinAge, nHeight);     // Updated: Use view, pass height
+            // Dereference shared_ptr: (*block.vtx[1]).GetCoinAge(view, nCoinAge, nHeight);
+            fTxGetCoinAge = (*block.vtx[1]).GetCoinAge(view, nCoinAge, nHeight);
         }
         if (!fTxGetCoinAge) {
-            return state.Invalid(BlockValidationResult::BLOCK_INVALID_STAKE, "bad-coinage", 
-                                 strprintf("unable to get coin age for coinstake %s", block.vtx[1].GetHash().ToString().substr(0,10)));
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-coinage", 
+                                 strprintf("unable to get coin age for coinstake %s", (*block.vtx[1]).GetHash().ToString().substr(0,10)));
         }
 
-        // Actual mint: Outputs - inputs (principal + reward)
-        nStakeReward = block.vtx[1].GetValueOut() - block.vtx[1].GetValueIn();
+        // Actual mint: Outputs - inputs (dereference for GetValueOut/GetValueIn)
+        nStakeReward = (*block.vtx[1]).GetValueOut() - (*block.vtx[1]).GetValueIn();
 
         // Expected reward (use pindex->pprev for prev chain state; nFees from txs)
         int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->pprev);
@@ -2687,8 +2690,9 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                       nHeight, nCoinAge, FormatMoney(nStakeReward).c_str(), FormatMoney(nPoSReward).c_str());
         }
 
-        // Update pindex for stake (e.g., modifier)
-        pindex->nStakeModifier = ComputeNextStakeModifier(pindex->pprev, block.GetBlockTime());
+        // Update pindex for stake (cast or match type; assume ComputeNextStakeModifier returns uint64_t or uint256)
+        // If mismatch, cast: static_cast<uint64_t>(ComputeNextStakeModifier(pindex->pprev, block.GetBlockTime()));
+        pindex->nStakeModifier = static_cast<uint64_t>(ComputeNextStakeModifier(pindex->pprev, block.GetBlockTime()));
     }
 
         CTxUndo undoDummy;
