@@ -1425,7 +1425,7 @@ int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 
     return nSubsidy;
 }
-*/
+
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
 {
@@ -1454,7 +1454,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneyS
         LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
     return nSubsidy;
 }
-
+*/
 
 
 //------------------------------------------------------------------------------------------
@@ -1767,53 +1767,55 @@ int64_t GetProofOfWorkReward(unsigned int nBits, int nHeight, int64_t nFees)
     return nSubsidy + nFees;
 }
 
-double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
+double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR) 
 {
-    double rAPR, rWeit=20000.;
-    rAPR = rMaxAPR * ( ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) ) + 1 );
+    double rAPR, rWeit = 20000.;
+    rAPR = rMaxAPR * ( ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) 
+           / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) ) + 1 );
     return rAPR;
 }
 
-double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
+static double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR) 
 {
-    double rAPR, rWeit=20000.;
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
+    double rAPR, rWeit = 20000.;
+    // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);  // Uncomment for testnet
+    rAPR = ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) * rMaxAPR 
+           / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) );
     return rAPR;
 }
 
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0)
+static double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0) 
 {
-    double rAPR, rWeit=500000.;
-//    if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2./( 1.+exp_n(1./(nNetWorkWeit/rWeit+1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2./( 1.+exp_n(1./(rWeit+1.)) ) - 0.53788 ) );
+    double rAPR, rWeit = 500000.;  // Higher threshold for mature chain
+    // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
+    rAPR = ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) * rMaxAPR 
+           / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) );
     if (pindex0 && IsMaintenance(pindex0)) rAPR *= 1.2;
-    if (fDebugMagiPoS) printf("@PoS-APRV2 rAPR = %f\n", rAPR);
+    if (fDebugMagiPoS) LogPrintf("@PoS-APRV2 rAPR = %f\n", rAPR);
     return rAPR;
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-/*int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex)
-{
-    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = (IsPoSIIProtocolV2(pindex->nHeight+1)) ? 
-		  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
-		  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex) {
+    if (!pindex) return nFees;  // Fallback: No context = no mint
 
+    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
+    double rAPR = (IsPoSIIProtocolV2(pindex->nHeight + 1)) ? 
+                  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
+                  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+
+    // Annual to per-block: *33 / (365*33 +8) ≈ /365 (daily), with 33=~1 week? (tune if needed)
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
-	if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64" nBits=%d\n", 
-                                  FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nHeight);
+    if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%08x\n", 
+                          FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nBits);
 
-	if (fDebug && fDebugMagi) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64", nCoinAge = %" PRId64", rAPR = %f\n", 
-				pindex->nHeight, nSubsidy/COIN, nCoinAge, rAPR);
+    if (fDebug && fDebugMagiPoS) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
+                pindex->nHeight, nSubsidy / COIN, nCoinAge, rAPR);
 
     return nSubsidy + nFees;
 }
-*/
+
 // find the nearest PoS block (including pindex)
 const CBlockIndex* GetLastPoSBlockIndex(const CBlockIndex* pindex)
 {
@@ -2638,21 +2640,56 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             control.Add(std::move(vChecks));
         }
 
-    if (block.IsProofOfWork()) {  // PoW block
-        // const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex);  // Commented out as in original
-        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev ? pindex->pprev->nTime : 0)) ? 
-                             GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
-                             GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nBits : 0, pindex->pprev ? pindex->pprev->nHeight : 0, nFees);
-        // Check coinbase reward
-        CAmount nCoinbaseOut = block.vtx[0]->GetValueOut();  // Dereference shared_ptr
-        if (nCoinbaseOut > nPoWReward) {
-            LogPrintf("ERROR: ConnectBlock() : coinbase reward exceeded (actual=%" PRId64" vs calculated=%" PRId64", height=%i)",
-                      nCoinbaseOut, nPoWReward, pindex->pprev ? pindex->pprev->nHeight : -1);
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
+        if (block.IsProofOfWork()) // the block under processing is PoW
+        {
+            //	const CBlockIndex* pIndex0 = GetLastPoWBlockIndex(pindex); // find the nearest PoW block
+            //        int64 nPoWReward = GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+             int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev ? pindex->pprev->nTime : 0)) ? 
+                                   GetProofOfWorkRewardV2(pindex->pprev, nFees, true) : 
+                                   GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nBits : 0, pindex->pprev ? pindex->pprev->nHeight : 0, nFees);
+            // Check coinbase reward
+            CAmount nCoinbaseOut = block.vtx[0]->GetValueOut();
+            if (nCoinbaseOut > nPoWReward) {
+                LogPrintf("ERROR: ConnectBlock() : coinbase reward exceeded (actual=%" PRId64" vs calculated=%" PRId64", height=%i)",
+                          nCoinbaseOut, nPoWReward, pindex->pprev ? pindex->pprev->nHeight : -1);
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
+            }
         }
-    }
 
-// ... (rest of ConnectBlock: control.Wait(), sigops verify, UpdateCoins loop, pindex updates, etc.)
+    int64_t nStakeReward = 0;
+    if (block.IsProofOfStake()) {  // PoS block
+        // ppcoin: coin stake tx earns reward instead of paying fee
+        uint64_t nCoinAge = 0;
+        bool fTxGetCoinAge = false;
+        if (IsPoSIIProtocolV2(nHeight)) {
+            fTxGetCoinAge = block.vtx[1].GetCoinAgeV2(view, nCoinAge, nHeight);  // Updated: Use view, pass height
+        } else {
+            fTxGetCoinAge = block.vtx[1].GetCoinAge(view, nCoinAge, nHeight);     // Updated: Use view, pass height
+        }
+        if (!fTxGetCoinAge) {
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_STAKE, "bad-coinage", 
+                                 strprintf("unable to get coin age for coinstake %s", block.vtx[1].GetHash().ToString().substr(0,10)));
+        }
+
+        // Actual mint: Outputs - inputs (principal + reward)
+        nStakeReward = block.vtx[1].GetValueOut() - block.vtx[1].GetValueIn();
+
+        // Expected reward (use pindex->pprev for prev chain state; nFees from txs)
+        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->pprev);
+        if (nStakeReward > nPoSReward) {
+            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-pos-reward", 
+                                 strprintf("stake reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)", 
+                                           nStakeReward, nPoSReward, nHeight));
+        }
+
+        if (fDebugMagiPoS) {
+            LogPrintf("ConnectBlock: PoS validated height=%d, coinAge=%" PRId64 ", mint=%s (expected=%s)\n", 
+                      nHeight, nCoinAge, FormatMoney(nStakeReward).c_str(), FormatMoney(nPoSReward).c_str());
+        }
+
+        // Update pindex for stake (e.g., modifier)
+        pindex->nStakeModifier = ComputeNextStakeModifier(pindex->pprev, block.GetBlockTime());
+    }
 
         CTxUndo undoDummy;
         if (i > 0) {
