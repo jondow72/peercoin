@@ -5517,6 +5517,11 @@ bool GetCoinAgeV2(const CTransaction& tx, const CCoinsViewCache &view, uint64_t&
             continue; // only count coins meeting min age requirement
 
         int64_t nValueIn = txPrev->vout[txin.prevout.n].nValue;
+        int nTimeWeight = GetMagiWeightV2(nValueIn, nTimeTx, nTime);
+            if (nTimeWeight < GetStakeMinAge(nTime))
+            continue; // only count coins meeting min age requirement
+
+        nTimeWeight = GetMagiWeightV2(nValueIn, txPrev.nTime, nTime);
         int nEffectiveAge = nTimeTx-(txPrev->nTime ? txPrev->nTime : header.GetBlockTime());
 
         if (!isTrueCoinAge || IsProtocolV09(nTimeTx))
