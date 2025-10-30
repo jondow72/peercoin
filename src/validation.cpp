@@ -5465,6 +5465,76 @@ bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& n
     return true;
 }
 
+bool GetCoinAgeV2(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, unsigned int nTimeTx, bool isTrueCoinAge)
+{
+    arith_uint256 bnCentSecond = 0;  // coin age in the unit of cent-seconds
+    nCoinAge = 0;
+
+    if (tx.IsCoinBase())
+        return true;
+
+    // Transaction index is required to get to block header
+    if (!g_txindex)
+        return false;  // Transaction index not available
+
+    for (const auto& txin : tx.vin)
+    {
+        // First try finding the previous transaction in database
+        const COutPoint &prevout = txin.prevout;
+        Coin coin;
+
+        if (isTrueCoinAge && !view.GetCoin(prevout, coin))
+            continue;  // previous transaction not in main chain
+        if (nTimeTx < coin.nTime)
+            return false;  // Transaction timestamp violation
+
+        CDiskTxPos postx;
+        CBlockHeader header;
+        CTransactionRef txPrev;
+        auto it = g_txindex->cachedTxs.find(prevout.hash);
+        if (it != g_txindex->cachedTxs.end()) {
+            header = it->second.first;
+            txPrev = it->second.second;
+        } else {
+            if (g_txindex->FindTxPosition(prevout.hash, postx)) {
+                CAutoFile file(node::OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+                try {
+                    file >> header;
+                    fseek(file.Get(), postx.nTxOffset, SEEK_CUR);
+                    file >> txPrev;
+                } catch (std::exception &e) {
+                    return error("%s() : deserialize or I/O error in GetCoinAge()", __PRETTY_FUNCTION__);
+                }
+            } else
+                return error("%s() : tx missing in tx index in GetCoinAge()", __PRETTY_FUNCTION__);
+            g_txindex->cachedTxs[prevout.hash] = std::pair(header,txPrev);
+        }
+
+        if (txPrev->GetHash() != prevout.hash)
+            return error("%s() : txid mismatch in GetCoinAge()", __PRETTY_FUNCTION__);
+
+        if (header.GetBlockTime() + Params().GetConsensus().nStakeMinAge > nTimeTx)
+            continue; // only count coins meeting min age requirement
+
+        int64_t nValueIn = txPrev->vout[txin.prevout.n].nValue;
+        int nEffectiveAge = nTimeTx-(txPrev->nTime ? txPrev->nTime : header.GetBlockTime());
+
+        if (!isTrueCoinAge || IsProtocolV09(nTimeTx))
+            nEffectiveAge = std::min(nEffectiveAge, 365 * 24 * 60 * 60);
+
+        bnCentSecond += arith_uint256(nValueIn) * nEffectiveAge / CENT;
+
+        if (gArgs.GetBoolArg("-printcoinage", false))
+            LogPrintf("coin age nValueIn=%-12lld nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nEffectiveAge, bnCentSecond.ToString());
+    }
+
+    arith_uint256 bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
+    if (gArgs.GetBoolArg("-printcoinage", false))
+        LogPrintf("coin age bnCoinDay=%s\n", bnCoinDay.ToString());
+    nCoinAge = bnCoinDay.GetLow64();
+    return true;
+}
+
 // peercoin: sign block
 typedef std::vector<unsigned char> valtype;
 bool SignBlock(CBlock& block, const CWallet& keystore)
