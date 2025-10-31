@@ -169,6 +169,7 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
 bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, const Consensus::Params& params, unsigned int nTimeTx, uint64_t nMoneySupply)
 {
+    int64_t nFees = 0;
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
         return state.Invalid(TxValidationResult::TX_MISSING_INPUTS, "bad-txns-inputs-missingorspent",
@@ -202,11 +203,11 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     {
         // peercoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
-        if (!GetCoinAge(IsPoSIIProtocolV2(coin.nHeight)) ? GetCoinAgeV2(tx, state, inputs, nCoinAge) : GetCoinAge(tx, state, inputs, nCoinAge))
+        if (!GetCoinAge(IsPoSIIProtocolV2(coin.nHeight < params.nCoinbaseMaturity)) ? GetCoinAgeV2(tx, inputs, nCoinAge, nTimeTx) : GetCoinAge(tx, inputs, nCoinAge, nTimeTx))
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "unable to get coin age for coinstake");
         CAmount nStakeReward = tx.GetValueOut() - nValueIn;
-        CAmount nCoinstakeCost = (GetMinFee(tx, nTimeTx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx, nTimeTx) - PERKB_TX_FEE);
-        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, coin.nHeight);
+//        CAmount nCoinstakeCost = (GetMinFee(tx, nTimeTx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx, nTimeTx) - PERKB_TX_FEE);
+        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, coin.nHeight < params.nCoinbaseMaturity);
         if (nMoneySupply && nStakeReward > nPoSReward)
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-coinstake-too-large");
     }
