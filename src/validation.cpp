@@ -79,6 +79,9 @@
 #include <string>
 #include <utility>
 
+// In validation.cpp (near the top, after includes)
+bool fTestNetWeightV2 = false;
+
 using kernel::CCoinsStats;
 using kernel::CoinStatsHashType;
 using kernel::ComputeUTXOStats;
