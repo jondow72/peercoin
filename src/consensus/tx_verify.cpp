@@ -202,17 +202,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     if (tx.IsCoinStake())
     {
         // peercoin: coin stake tx earns reward instead of paying fee
-        if (tx.vin.empty()) {
-            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-no-inputs-for-coinstake");
-        }
-        const COutPoint &stakeout = tx.vin[0].prevout;
-        const Coin& coin = inputs.AccessCoin(stakeout);
-        assert(!coin.IsSpent());
-
         uint64_t nCoinAge;
-        bool usePoSIIV2 = IsPoSIIProtocolV2(coin.nHeight < params.nCoinbaseMaturity);
-        bool success = usePoSIIV2 ? GetCoinAgeV2(tx, inputs, nCoinAge, nTimeTx) : GetCoinAge(tx, inputs, nCoinAge, nTimeTx);
-        if (!success)
+        if (!GetCoinAge(IsPoSIIProtocolV2(coin.nHeight < params.nCoinbaseMaturity)) ? GetCoinAgeV2(tx, inputs, nCoinAge, nTimeTx) : GetCoinAge(tx, inputs, nCoinAge, nTimeTx))
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "unable to get coin age for coinstake");
         CAmount nStakeReward = tx.GetValueOut() - nValueIn;
 //        CAmount nCoinstakeCost = (GetMinFee(tx, nTimeTx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx, nTimeTx) - PERKB_TX_FEE);
