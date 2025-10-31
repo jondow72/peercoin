@@ -203,11 +203,11 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     {
         // peercoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
-        if (!GetCoinAge(IsPoSIIProtocolV2(coin.nHeight < params.nCoinbaseMaturity)) ? GetCoinAgeV2(tx, inputs, nCoinAge, nTimeTx) : GetCoinAge(tx, inputs, nCoinAge, nTimeTx))
+        if (!GetCoinAge(IsPoSIIProtocolV2(nSpendHeight)) ? GetCoinAgeV2(tx, inputs, nCoinAge, nTimeTx) : GetCoinAge(tx, inputs, nCoinAge, nTimeTx))
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "unable to get coin age for coinstake");
         CAmount nStakeReward = tx.GetValueOut() - nValueIn;
 //        CAmount nCoinstakeCost = (GetMinFee(tx, nTimeTx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx, nTimeTx) - PERKB_TX_FEE);
-        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, coin.nHeight < params.nCoinbaseMaturity);
+        int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, nSpendHeight);
         if (nMoneySupply && nStakeReward > nPoSReward)
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-coinstake-too-large");
     }
