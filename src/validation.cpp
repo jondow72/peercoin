@@ -5402,10 +5402,16 @@ bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& n
             continue; // only count coins meeting min age requirement
 
         int64_t nValueIn = txPrev->vout[txin.prevout.n].nValue;
-        int nEffectiveAge = nTimeTx-(txPrev->nTime ? txPrev->nTime : header.GetBlockTime());
+//        int nEffectiveAge = nTimeTx-(txPrev->nTime ? txPrev->nTime : header.GetBlockTime());
 
-        if (!isTrueCoinAge || IsProtocolV09(nTimeTx))
-            nEffectiveAge = std::min(nEffectiveAge, 365 * 24 * 60 * 60);
+        int nEffectiveAge = GetMagiWeight(nValueIn, txPrev->nTime, nTimeTx);
+            if (nEffectiveAge < GetStakeMinAge(nTimeTx))
+            continue; // only count coins meeting min age requirement
+
+        nEffectiveAge = GetMagiWeight(nValueIn, txPrev->nTime, nTimeTx);
+
+//        if (!isTrueCoinAge || IsProtocolV09(nTimeTx))
+//            nEffectiveAge = std::min(nEffectiveAge, 365 * 24 * 60 * 60);
 
         bnCentSecond += arith_uint256(nValueIn) * nEffectiveAge / CENT;
 
@@ -5423,7 +5429,6 @@ bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& n
 bool GetCoinAgeV2(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, unsigned int nTimeTx, bool isTrueCoinAge)
 {
     arith_uint256 bnCentSecond = 0;  // coin age in the unit of cent-seconds
-    int64_t nTimeWeight;
     nCoinAge = 0;
 
     if (tx.IsCoinBase())
@@ -5475,19 +5480,19 @@ bool GetCoinAgeV2(const CTransaction& tx, const CCoinsViewCache &view, uint64_t&
         int64_t nValueIn = txPrev->vout[txin.prevout.n].nValue;
 //        int nEffectiveAge = nTimeTx-(txPrev->nTime ? txPrev->nTime : header.GetBlockTime());
 
-        nTimeWeight = GetMagiWeightV2(nValueIn, txPrev->nTime, nTimeTx);
-            if (nTimeWeight < GetStakeMinAge(nTimeTx))
+        int nEffectiveAge = GetMagiWeightV2(nValueIn, txPrev->nTime, nTimeTx);
+            if (nEffectiveAge < GetStakeMinAge(nTimeTx))
             continue; // only count coins meeting min age requirement
 
-        nTimeWeight = GetMagiWeightV2(nValueIn, txPrev->nTime, nTimeTx);
+        nEffectiveAge = GetMagiWeightV2(nValueIn, txPrev->nTime, nTimeTx);
 
 //        if (!isTrueCoinAge || IsProtocolV09(nTimeTx))
 //            nEffectiveAge = std::min(nEffectiveAge, 365 * 24 * 60 * 60);
 
-        bnCentSecond += arith_uint256(nValueIn) * nTimeWeight / CENT;
+        bnCentSecond += arith_uint256(nValueIn) * nEffectiveAge / CENT;
 
         if (gArgs.GetBoolArg("-printcoinage", false))
-            LogPrintf("coin age nValueIn=%-12lld nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTimeWeight, bnCentSecond.ToString());
+            LogPrintf("coin age nValueIn=%-12lld nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nEffectiveAge, bnCentSecond.ToString());
     }
 
     arith_uint256 bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
