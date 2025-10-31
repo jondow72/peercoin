@@ -202,7 +202,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     {
         // peercoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
-        if (!GetCoinAge(tx, inputs, nCoinAge, nTimeTx))
+        if (!GetCoinAge(IsPoSIIProtocolV2(coin.nHeight)) ? GetCoinAgeV2(tx, state, inputs, nCoinAge) : GetCoinAge(tx, state, inputs, nCoinAge))
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "unable to get coin age for coinstake");
         CAmount nStakeReward = tx.GetValueOut() - nValueIn;
         CAmount nCoinstakeCost = (GetMinFee(tx, nTimeTx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx, nTimeTx) - PERKB_TX_FEE);
