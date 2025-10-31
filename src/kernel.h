@@ -81,10 +81,10 @@ unsigned int HowSuperMajority(int minVersion, const CBlockIndex* pstart, unsigne
 unsigned int GetStakeEntropyBit(const CBlock& block);
 
 // Get time weight
-int64 GetMagiWeight(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd);
-int64 GetMagiWeightV2(int64 nValueIn, int64 nIntervalBeginning, int64 nIntervalEnd);
+int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
+int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 // Get time weight using supplied timestamps
-int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd);
+int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 #endif // PEERCOIN_KERNEL_H
