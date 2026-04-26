@@ -163,6 +163,8 @@ public:
         // service bits we want, but we should get them updated to support all service bits wanted by any
         // release ASAP to avoid it where possible.
         vSeeds.emplace_back("magi-seed.checkbug.com");
+        vSeeds.emplace_back("magi-seed.xmg.network");
+        vSeeds.emplace_back("seed.magi.filoozom.com");		
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,55);  // peercoin: addresses begin with 'P'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,117); // peercoin: addresses begin with 'p'
@@ -276,6 +278,8 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("test-magi-seed.checkbug.com");
+        vSeeds.emplace_back("test-magi-seed.xmg.network");
+        vSeeds.emplace_back("test-seed.magi.filoozom.com");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
