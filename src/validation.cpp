@@ -2598,7 +2598,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             for (unsigned int i = 0; i < tx.vin.size(); i++)
                 nValueIn += view.AccessCoin(tx.vin[i].prevout).out.nValue;
             nValueOut += tx.GetValueOut();
-            int64_t nTxValueIn = tx.GetValueIn(mapInputs);
+            int64_t nTxValueIn = tx.GetValueIn(view);
             int64_t nTxValueOut = tx.GetValueOut();
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
@@ -2684,6 +2684,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             if (nStakeReward > nPoSReward)
                 return DoS(100, error("ConnectBlock() : stake reward exceeded (actual=%" PRI64d " vs calculated=%" PRI64d ", height=%i)", nStakeReward, nPoSReward, pindex->nHeight));
         }
+
         CTxUndo undoDummy;
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
