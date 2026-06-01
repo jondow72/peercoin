@@ -2666,7 +2666,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
             }
         }
-        if (IsProofOfStake()) // the block under processing is PoS
+        if (block.IsProofOfStake()) // the block under processing is PoS
         {
             // ppcoin: coin stake tx earns reward instead of paying fee
             uint64 nCoinAge;
