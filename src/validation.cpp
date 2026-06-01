@@ -2573,6 +2573,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     CAmount nFees = 0;
     int64_t nValueIn = 0;
     int64_t nValueOut = 0;
+    int64_t nStakeReward = 0;
     int nInputs = 0;
     int64_t nSigOpsCost = 0;
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
@@ -2597,8 +2598,15 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             for (unsigned int i = 0; i < tx.vin.size(); i++)
                 nValueIn += view.AccessCoin(tx.vin[i].prevout).out.nValue;
             nValueOut += tx.GetValueOut();
+            int64_t nTxValueIn = tx.GetValueIn(view);
+            int64_t nTxValueOut = tx.GetValueOut();
+            nValueIn += nTxValueIn;
+            nValueOut += nTxValueOut;
             if (!tx.IsCoinStake())
                 nFees += txfee;
+            if (tx.IsCoinStake())
+                nStakeReward = nTxValueOut - nTxValueIn;
+
             if (!MoneyRange(nFees)) {
                 LogPrintf("ERROR: %s: accumulated fee in the block out of range.\n", __func__);
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-txns-accumulated-fee-outofrange");
@@ -2657,6 +2665,24 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                           nCoinbaseOut, nPoWReward, pindex->pprev ? pindex->pprev->nHeight : -1);
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount");  // DoS(50, ...) -> state.Invalid
             }
+        }
+        if (block.IsProofOfStake()) // the block under processing is PoS
+        {
+            // ppcoin: coin stake tx earns reward instead of paying fee
+            uint64 nCoinAge;
+	    bool fTxGetCoinAge = (IsPoSIIProtocolV2(pindex->nHeight)) ? block.vtx[1].GetCoinAgeV2(block, nCoinAge) : block.vtx[1].GetCoinAge(block, nCoinAge);
+            if (!fTxGetCoinAge)
+                return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
+    //	const CBlockIndex* pIndex0 = GetLastPoSBlockIndex(pindex); // find the nearest PoS block
+    	// this is mostly due to finding 1st PoS block, otherwise something wrong
+    //	if (pIndex0->nHeight==0) {
+    //	    pIndex0 = pindex->pprev;
+    //	    printf("WARNING: ConnectBlock() set pIndex0 to the last pindex:\n");
+    //	    pIndex0->print();
+    //	}
+            int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->pprev);
+            if (nStakeReward > nPoSReward)
+                return DoS(100, error("ConnectBlock() : stake reward exceeded (actual=%" PRI64d " vs calculated=%" PRI64d ", height=%i)", nStakeReward, nPoSReward, pindex->nHeight));
         }
 
         CTxUndo undoDummy;
