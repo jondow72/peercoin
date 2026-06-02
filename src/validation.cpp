@@ -2666,7 +2666,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
         {
             // ppcoin: coin stake tx earns reward instead of paying fee
             uint64 nCoinAge;
-	    bool fTxGetCoinAge = (IsPoSIIProtocolV2(pindex->nHeight)) ? vtx[1].GetCoinAgeV2(txdb, nCoinAge) : vtx[1].GetCoinAge(txdb, nCoinAge);
+	    bool fTxGetCoinAge = (IsPoSIIProtocolV2(pindex->nHeight)) ? vtx[1].GetCoinAgeV2(block, nCoinAge) : vtx[1].GetCoinAge(block, nCoinAge);
             if (!fTxGetCoinAge)
                 return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
     //	const CBlockIndex* pIndex0 = GetLastPoSBlockIndex(pindex); // find the nearest PoS block
