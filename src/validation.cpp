@@ -2678,7 +2678,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     //	}
             int64_t nPoSReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->pprev);
             if (nStakeReward > nPoSReward) {
-                LogPrintf("ERROR: ConnectBlock() : stake reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)", nStakeReward, nPoSReward, pindex->nHeight)",
+                LogPrintf("ERROR: ConnectBlock() : stake reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)", nStakeReward, nPoSReward, pindex->nHeight);
             }
 		}
 
