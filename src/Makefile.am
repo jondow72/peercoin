@@ -950,6 +950,7 @@ libpeercoinkernel_la_SOURCES = \
   pow.cpp \
   primitives/block.cpp \
   primitives/transaction.cpp \
+  policy/feerate.cpp \
   pubkey.cpp \
   random.cpp \
   randomenv.cpp \
