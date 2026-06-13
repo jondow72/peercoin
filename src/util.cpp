@@ -321,7 +321,7 @@ string vstrprintf(const char *format, va_list ap)
     char* p = buffer;
     int limit = sizeof(buffer);
     int ret;
-    loop
+    while (true)
     {
         va_list arg_ptr;
         va_copy(arg_ptr, ap);
@@ -381,7 +381,7 @@ void ParseString(const string& str, char c, vector<string>& v)
         return;
     string::size_type i1 = 0;
     string::size_type i2;
-    loop
+    while (true)
     {
         i2 = str.find(c, i1);
         if (i2 == str.npos)
@@ -510,7 +510,7 @@ vector<unsigned char> ParseHex(const char* psz)
 {
     // convert hex dump to vector
     vector<unsigned char> vch;
-    loop
+    while (true)
     {
         while (isspace(*psz))
             psz++;
@@ -964,7 +964,7 @@ string DecodeBase32(const string& str)
 
 bool WildcardMatch(const char* psz, const char* mask)
 {
-    loop
+    while (true)
     {
         switch (*mask)
         {
@@ -1155,7 +1155,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 boost::filesystem::path GetConfigFile()
 {
     boost::filesystem::path pathConfigFile(GetArg("-conf", "peercoin.conf"));
-    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+if (!pathConfigFile.is_absolute()) pathConfigFile = GetDataDir(false) / pathConfigFile;
 
     // Load old config file if present
     if (mapArgs.count("-conf") == 0 && !boost::filesystem::exists(pathConfigFile)) {
@@ -1197,7 +1197,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 boost::filesystem::path GetPidFile()
 {
     boost::filesystem::path pathPidFile(GetArg("-pid", "peercoind.pid"));
-    if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
+    if (!pathPidFile.is_absolute()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
 
