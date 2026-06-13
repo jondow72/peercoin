@@ -28,6 +28,28 @@ class CCoinControl;
 
 struct CBlockIndexWorkComparator;
 
+static const int MAX_MAGI_POW_HEIGHT = 25000000;
+static const int PRM_MAGI_POW_HEIGHT = 80000;
+static const int PRM_MAGI_POW_HEIGHT_V2 = 50000; // re-cal PoW-I end block
+static const int END_MAGI_POW_HEIGHT = 500000;
+static const int END_MAGI_POW_HEIGHT_V2 = 5000000; // PoW-II aims to issue 12 mil and more than 10 years
+
+static const int BLOCK_REWARD_ADJT = 2700;
+static const int BLOCK_REWARD_ADJT_M7M_V2 = 32750;
+
+static const int64 COINS_BURNED = 720000 * COIN; // Notes: https://bitcointalk.org/index.php?topic=735170.msg9475622#msg9475622
+
+
+static const double MAX_MAGI_PROOF_OF_STAKE = 0.05;		// dynamic annual interest, max 5%
+static const double MAX_MAGI_BALANCE_in_STAKE = 0.15;		// balance/money supply, max 15%
+static const int64 MAX_MONEY_STAKE_REF = 5000000 * COIN;	// 5 mil
+static const int64 MAX_MONEY_STAKE_REF_V2 = 500000 * COIN;	// 0.5 mil
+
+
+
+static const int nCoinbaseMaturity = 100;            // 100 blocks
+static const int nCoinbaseMaturityADJ = 500;            // 500 blocks
+
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 /** Obsolete: maximum size for mined blocks */
@@ -55,10 +77,12 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Fake height value used in CCoins to signify they are only in the memory pool (since 0.8) */
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 /** No amount larger than this (in satoshi) is valid */
-static const int64 MAX_MONEY = 2000000000 * COIN;
+static const int64 MAX_MONEY = 25000000 * COIN + COINS_BURNED;  // NOte: the amount of COINS_BURNED is unspendable
+//static const int64 MAX_MONEY_POW_PRM = 10000000 * COIN;	// 10 mil; 5.5 mil in 1st magipow
+//static const int64 MAX_MONEY_POW_END = 15000000 * COIN;	// 15 mil; 5 mil in 2nd magipow
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-static const int64 MIN_TX_FEE = CENT;
-static const int64 MIN_RELAY_TX_FEE = CENT;
+static const int64 MIN_TX_FEE = .0001 * COIN;
+static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
 static const int64 MAX_MINT_PROOF_OF_WORK = 9999 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
@@ -75,8 +99,8 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlockOfficial("0x0000000032fe677166d54963b62a4677d8957e87c508eaa4fd7eb1c880cd27e3");
-static const uint256 hashGenesisBlockTestNet("0x00000001f757bb737f6596503e17cd17b0658ce630cc727c0cca81aec47c9f06");
+static const uint256 hashGenesisBlockOfficial("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc");
+static const uint256 hashGenesisBlockTestNet("0x0000036df26f4d11af604f86b7bdc5ce5f8bee17a3c6f57e9e6e800ef21d8447");
 
 static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
@@ -480,7 +504,22 @@ public:
 
     uint256 GetHash() const
     {
-        return SerializeHash(*this);
+        if (fTestNet) {
+            return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            /*
+            if(nTime < 1413590400) {
+                return hash_M7M(BEGIN(nVersion), END(nNonce));
+            } else {
+                return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            }
+            */
+        } else {
+            if(nTime < 1414330200) {
+                return hash_M7M(BEGIN(nVersion), END(nNonce));
+            } else {
+                return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
+            }
+        }
     }
 
     friend bool operator==(const CTxOut& a, const CTxOut& b)

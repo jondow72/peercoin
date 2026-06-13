@@ -177,6 +177,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/init.h \
     src/bloom.h \
     src/mruset.h \
+    src/magimath.h \
     src/checkqueue.h \
     src/json/json_spirit_writer_template.h \
     src/json/json_spirit_writer.h \
@@ -219,11 +220,21 @@ HEADERS += src/qt/bitcoingui.h \
     src/allocators.h \
     src/ui_interface.h \
     src/kernel.h \
+    src/scrypt_mine.h \
+    src/pbkdf2.h \
     src/checkpointsync.h \
     src/qt/rpcconsole.h \
     src/version.h \
     src/netbase.h \
     src/clientversion.h \
+    src/hash_magi.h \
+    src/hash/sph_types.h \
+    src/hash/sph_keccak.h \
+    src/hash/sph_haval.h \
+    src/hash/sph_ripemd.h \
+    src/hash/sph_sha2.h \
+    src/hash/sph_tiger.h \
+    src/hash/sph_whirlpool.h \
     src/txdb.h \
     src/leveldb.h \
     src/threadsafety.h \
@@ -299,6 +310,13 @@ SOURCES += src/qt/bitcoin.cpp \
     src/protocol.cpp \
     src/qt/notificator.cpp \
     src/kernel.cpp \
+    src/hash/keccak.cpp \
+    src/hash/haval.cpp \
+    src/hash/ripemd.cpp \
+    src/hash/sha2.cpp \
+    src/hash/sha2big.cpp \
+    src/hash/tiger.cpp \
+    src/hash/whirlpool.cpp \
     src/checkpointsync.cpp \
     src/qt/paymentserver.cpp \
     src/qt/rpcconsole.cpp \

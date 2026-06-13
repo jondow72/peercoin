@@ -142,6 +142,15 @@ OBJS= \
     obj/wallet.o \
     obj/walletdb.o \
     obj/kernel.o \
+    obj/pbkdf2.o \
+    obj/keccak.o \
+    obj/haval.o \
+    obj/ripemd.o \
+    obj/sha2.o \
+    obj/sha2big.o \
+    obj/tiger.o \
+    obj/whirlpool.o \
+    obj/magimath.o \
     obj/checkpointsync.o \
     obj/hash.o \
     obj/bloom.o \
