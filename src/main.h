@@ -10,6 +10,8 @@
 #include "sync.h"
 #include "net.h"
 #include "script.h"
+#include "scrypt_mine.h"
+#include "hash_magi.h"
 
 #include <list>
 
@@ -117,7 +119,7 @@ extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern std::set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexValid;
 extern uint256 hashGenesisBlock;
 extern unsigned int nStakeMinAge;
-extern int nCoinbaseMaturity;
+// extern int nCoinbaseMaturity;
 extern CBlockIndex* pindexGenesisBlock;
 extern int nBestHeight;
 extern uint256 nBestChainTrust;
@@ -460,6 +462,9 @@ public:
 class CTxOut
 {
 public:
+    int nVersion;
+    unsigned int nTime;
+    unsigned int nNonce;
     int64 nValue;
     CScript scriptPubKey;
 
