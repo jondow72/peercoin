@@ -37,15 +37,21 @@ typedef int pid_t; /* define for Windows compatibility */
 typedef long long  int64;
 typedef unsigned long long  uint64;
 
-static const int64 COIN = 1000000;
-static const int64 CENT = 10000;
+static const int64 COIN = 100000000;
+static const int64 CENT = 1000000;
 
-#define loop                for (;;)
+static const double MINFINITESIMAL = 1.e-30;
+
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))
 #define UBEGIN(a)           ((unsigned char*)&(a))
 #define UEND(a)             ((unsigned char*)&((&(a))[1]))
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
+
+#define UVOIDBEGIN(a)        ((void*)&(a))
+#define CVOIDBEGIN(a)        ((const void*)&(a))
+#define UINTBEGIN(a)        ((uint32_t*)&(a))
+#define CUINTBEGIN(a)        ((const uint32_t*)&(a))
 
 #ifndef PRI64d
 #if defined(_MSC_VER) || defined(__MSVCRT__)
