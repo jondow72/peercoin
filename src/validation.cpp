@@ -2575,6 +2575,9 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     int64_t nValueOut = 0;
     int nInputs = 0;
     int64_t nSigOpsCost = 0;
+    bool fStakeCoinAgeChecked = false;
+    uint64_t nStakeCoinAge = 0;
+    int64_t nStakeReward = 0;
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
@@ -2593,6 +2596,22 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                             tx_state.GetRejectReason(), tx_state.GetDebugMessage());
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), state.ToString());
+            }
+            if (tx.IsCoinStake()) {
+                uint64_t nCoinAge = 0;
+                bool isPoSIIV2 = IsPoSIIProtocolV2(pindex->nHeight);
+                bool fTxGetCoinAge = isPoSIIV2 ? GetCoinAgeV2(tx, view, nCoinAge, tx.nTime ? tx.nTime : block.nTime) : GetCoinAge(tx, view, nCoinAge, tx.nTime ? tx.nTime : block.nTime);
+                if (!fTxGetCoinAge) {
+                    state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "unable-to-get-coin-age", strprintf("ConnectBlock() : %s unable to get coin age for coinstake", tx.GetHash().ToString().substr(0,10)));
+                    return false;
+                }
+                CAmount nStakeValueIn = 0;
+                for (const auto& txin : tx.vin) {
+                    nStakeValueIn += view.AccessCoin(txin.prevout).out.nValue;
+                }
+                nStakeCoinAge = nCoinAge;
+                nStakeReward = tx.GetValueOut() - nStakeValueIn;
+                fStakeCoinAgeChecked = true;
             }
             for (unsigned int i = 0; i < tx.vin.size(); i++)
                 nValueIn += view.AccessCoin(tx.vin[i].prevout).out.nValue;
@@ -2670,6 +2689,32 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
              nInputs <= 1 ? 0 : Ticks<MillisecondsDouble>(time_4 - time_2) / (nInputs - 1),
              Ticks<SecondsDouble>(time_verify),
              Ticks<MillisecondsDouble>(time_verify) / num_blocks_total);
+
+    if (block.IsProofOfWork()) {
+        if (!pindex->pprev) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
+        }
+        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
+            GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
+            GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+        if (block.vtx[0]->GetValueOut() > nPoWReward) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                    strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
+                        block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
+        }
+    }
+
+    if (block.IsProofOfStake()) {
+        if (!fStakeCoinAgeChecked) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "ConnectBlock() : missing coinstake coin age data");
+        }
+        int64_t nPoSReward = GetProofOfStakeReward(nStakeCoinAge, nFees, pindex->pprev);
+        if (nStakeReward > nPoSReward) {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
+                    strprintf("ConnectBlock() : stake reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
+                        nStakeReward, nPoSReward, pindex->nHeight));
+        }
+    }
 
     if (fJustCheck)
         return true;
