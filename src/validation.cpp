@@ -1538,9 +1538,9 @@ double GetDifficultyFromBitsAver(const CBlockIndex* pindex0, int nBlocksAver0)
 
 #define HEIGHT_INIT_MAINTENANCE 1451226
 #define HEIGHT_END_MAINTENANCE 1481500
-bool IsMaintenance(const CBlockIndex* pindex_)
+bool IsMaintenanceByHeight(int64_t nHeight)
 {
-    return ( (pindex_->nHeight > HEIGHT_INIT_MAINTENANCE) && (pindex_->nHeight < HEIGHT_END_MAINTENANCE) );
+    return (nHeight > HEIGHT_INIT_MAINTENANCE && nHeight < HEIGHT_END_MAINTENANCE);
 }
 
 int64_t GetProofOfWorkReward_OPM(int64_t nHeight, uint32_t nBits = 0)
