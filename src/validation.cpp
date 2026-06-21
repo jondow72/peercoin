@@ -3912,8 +3912,10 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         const CBlockIndex* pindex = nullptr;
         
         if (nHeight >= 0) {
-            LOCK(cs_main);
-            pindex = ::ChainstateActive().m_chain.FindBlockByHeight(nHeight);
+            // Simple dummy CBlockIndex (safe for reward calculation)
+            CBlockIndex dummyIndex;
+            dummyIndex.nHeight = nHeight;
+            pindex = &dummyIndex;
         }
 
         CAmount nPoWReward = 0;
