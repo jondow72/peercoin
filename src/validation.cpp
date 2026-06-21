@@ -1543,24 +1543,33 @@ bool IsMaintenance(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight > HEIGHT_INIT_MAINTENANCE) && (pindex_->nHeight < HEIGHT_END_MAINTENANCE) );
 }
 
-int64_t GetProofOfWorkReward_OPM(const CBlockIndex* pindex0)
+int64_t GetProofOfWorkReward_OPM(int64_t nHeight, uint32_t nBits = 0)
 {
-    int nHeight = pindex0->nHeight;
+    if (nHeight <= 0) 
+        nHeight = 1;
+
     double M7Mv2_move = ( (nHeight <= 75000) ? 2.85 : ( 2.85 - pow( log(nHeight) - log(75000.), 0.3 )*1.5 ) );
-    double rDiff = GetDifficultyFromBitsV2(pindex0);
+    double rDiff = (nBits != 0) ? GetDifficultyFromBitsV2(nBits) : GetDifficultyFromBitsV2(nHeight); // adjust if needed
     double rDiffcu = 2.2 / M7Mv2_move;
     double rSubsidy = 0.;
+
     rSubsidy = 50. * pow( (5.55243*(exp_n(-0.3*rDiff/0.39*M7Mv2_move) - exp_n(-0.6*rDiff/0.39*M7Mv2_move)))*rDiff, 0.5)
-		    / (3.02849*exp_n(-M7Mv2_move / 0.14814) + 1.794*exp_n(-M7Mv2_move / 0.89044) + 0.74536)
-		    * exp_n2(rDiff/(0.16/M7Mv2_move), rDiffcu/(0.16/M7Mv2_move));
+                    / (3.02849*exp_n(-M7Mv2_move / 0.14814) + 1.794*exp_n(-M7Mv2_move / 0.89044) + 0.74536)
+                    * exp_n2(rDiff/(0.16/M7Mv2_move), rDiffcu/(0.16/M7Mv2_move));
+
     if (rDiff > rDiffcu && rSubsidy < 3.) {
-	rSubsidy = 6. * exp_n2( pow( abs( rDiff - (18.02428*exp_n(-M7Mv2_move/0.17628) + 6.58466*exp_n(-M7Mv2_move/0.71943) + 0.93489) )/(1./M7Mv2_move), 0.5 ), 0.);
+        rSubsidy = 6. * exp_n2( pow( abs( rDiff - (18.02428*exp_n(-M7Mv2_move/0.17628) + 6.58466*exp_n(-M7Mv2_move/0.71943) + 0.93489) )/(1./M7Mv2_move), 0.5 ), 0.);
     }
-    if (IsMaintenance(pindex0)) rSubsidy *= 0.3;
+
+    if (IsMaintenanceByHeight(nHeight)) rSubsidy *= 0.3;   // You need this helper (see below)
+
     rSubsidy *= double(COIN);
-    if (rSubsidy > 50*COIN) { rSubsidy = 50*COIN; }
-    else if (rSubsidy < MIN_TX_FEE) { rSubsidy = MIN_TX_FEE; }
-    for(int i = 500000; i <= nHeight; i += 500000) rSubsidy *= 0.93; // yearly decline (7%)
+    if (rSubsidy > 50*COIN)      rSubsidy = 50*COIN;
+    else if (rSubsidy < MIN_TX_FEE) rSubsidy = MIN_TX_FEE;
+
+    for(int i = 500000; i <= nHeight; i += 500000) 
+        rSubsidy *= 0.93; // yearly decline
+
     return (int64_t)rSubsidy;
 }
 
