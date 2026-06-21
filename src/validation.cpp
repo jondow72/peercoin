@@ -1579,11 +1579,11 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
 
-int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
+int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
-    int nHeight = pindex0->nHeight;
+//    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
+//    int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
     
 //      double rDiff = GetDifficultyFromBitsV2(pindex0); 
