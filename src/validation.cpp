@@ -1594,7 +1594,7 @@ int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
     }
 
     if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
-        nSubsidy = GetProofOfWorkReward_OPM(nHeight);           // ← now using height version
+        nSubsidy = GetProofOfWorkReward_OPM(nHeight);
     } else {
         nSubsidy = MIN_TX_FEE;
     }
@@ -1603,7 +1603,8 @@ int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
         printf("@@PoWII-V2 (nHeight=%" PRId64 ", Subsidy=%" PRId64 ")\n", nHeight, nSubsidy);
     }
 
-    if (IsChainInSwitchByHeight(nHeight)) 
+    // Use the new height version
+    if (IsChainInSwitchByHeight(nHeight))
         nSubsidy = (double)nSubsidy / 25.;
 
     return nSubsidy + nFees;
