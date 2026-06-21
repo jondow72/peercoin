@@ -1651,33 +1651,31 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
 int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-//    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
-//    int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
-    
-//      double rDiff = GetDifficultyFromBitsV2(pindex0); 
-//      printf("@@BLKV2-test (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
-//    nHeight, rDiff, double(nSubsidy)/double(COIN));
-      
+
     if (fTestNet) {
-//        if (nHeight%2 == 0) nSubsidy = 1000 * COIN;
-//        else nSubsidy = GetProofOfWorkReward_OPM(pindex0);
         nSubsidy = 1000 * COIN;
         return nSubsidy + nFees;
     }
 
-    if (nHeight <= END_MAGI_POW_HEIGHT_V2) {    // difficulty dependent PoW-II mining
-       nSubsidy = GetProofOfWorkReward_OPM(pindex0);
+    // Main logic using nHeight
+    if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
+        // For difficulty-dependent reward, we need bits or previous block
+        // Temporary simple version - improve later if needed
+        nSubsidy = GetProofOfWorkReward_OPM(nHeight);   // You may need to adjust this call
     } else {
         nSubsidy = MIN_TX_FEE;
     }
 
     if (fDebugMagi) {
-      double rDiff = GetDifficultyFromBitsV2(pindex0); 
-      printf("@@PoWII-V2 (nHeight, rDiff, rSubsidy) = (%d, %f, %f)\n", 
-      nHeight, rDiff, double(nSubsidy)/double(COIN));
+        printf("@@PoWII-V2 (nHeight, rSubsidy) = (%" PRId64 ", %f)\n", 
+               nHeight, double(nSubsidy)/double(COIN));
     }
-    if (IsChainInSwitch(pindex0)) nSubsidy = (double)nSubsidy / 25.;
+
+    if (IsChainInSwitchByHeight(nHeight)) {   // You may need to create this helper
+        nSubsidy = (double)nSubsidy / 25.;
+    }
+
     return nSubsidy + nFees;
 }
 
