@@ -3907,16 +3907,32 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-time", "coinstake timestamp violation");
 
     // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
     if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0], block.nTime) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE);
-    int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
-        GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
-        GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-    if (block.vtx[0]->GetValueOut() > nPoWReward) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut(, nPoWReward, pindex->pprev->nHeight)),
+    {
+        const CBlockIndex* pindex = nullptr;
+        
+        if (nHeight >= 0) {
+            LOCK(cs_main);
+            
+            // Correct way in Bitcoin 25.2
+            const auto& active_chain = ::ChainstateActive().m_chain;
+            pindex = active_chain.FindBlockByHeight(nHeight);
+        }
+
+        CAmount nPoWReward = GetProofOfWorkRewardV2(pindex, 0, true);
+
+        // Keep your old fee logic if you need it
+        CAmount nCoinbaseCost = 0;
+        if (GetMinFee(*block.vtx[0], block.nTime) >= PERKB_TX_FEE) {
+            nCoinbaseCost = GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE;
+        }
+
+        if (block.vtx[0]->GetValueOut() > (nPoWReward - nCoinbaseCost))
+        {
+            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                    strprintf("CheckBlock() : coinbase reward exceeded (actual=%s, limit=%s, height=%d)",
+                       FormatMoney(block.vtx[0]->GetValueOut()),
+                       FormatMoney(nPoWReward - nCoinbaseCost), nHeight));
         }
     }
     // Check transactions
