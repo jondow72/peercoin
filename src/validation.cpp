@@ -3913,15 +3913,22 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         
         if (nHeight >= 0) {
             LOCK(cs_main);
-            
-            // Correct way in Bitcoin 25.2
-            const auto& active_chain = ::ChainstateActive().m_chain;
-            pindex = active_chain.FindBlockByHeight(nHeight);
+            pindex = ::ChainstateActive().m_chain.FindBlockByHeight(nHeight);
         }
 
-        CAmount nPoWReward = GetProofOfWorkRewardV2(pindex, 0, true);
+        CAmount nPoWReward = 0;
+        CAmount nFees = 0;
+        if (pindex && pindex->pprev) {
+            // Use your original logic with protocol version check
+            nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
+                         GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
+                         GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+        } else {
+            // Fallback when pindex not available yet (early validation)
+            nPoWReward = GetProofOfWorkRewardV2(nullptr, nFees, true);
+        }
 
-        // Keep your old fee logic if you need it
+        // Your original fee adjustment
         CAmount nCoinbaseCost = 0;
         if (GetMinFee(*block.vtx[0], block.nTime) >= PERKB_TX_FEE) {
             nCoinbaseCost = GetMinFee(*block.vtx[0], block.nTime) - PERKB_TX_FEE;
