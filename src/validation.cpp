@@ -1573,19 +1573,14 @@ int64_t GetProofOfWorkReward_OPM(int64_t nHeight, uint32_t nBits = 0)
     return (int64_t)rSubsidy;
 }
 
-bool IsChainInSwitch(const CBlockIndex* pindex_)
+bool IsChainInSwitchByHeight(int64_t nHeight)
 {
-    const CBlockIndex *pindex0 = pindex_;
-    int nHeightIncr = 0;
-    while (pindex0->nHeight >= 1443960) {
-        if (!pindex0) {
-            printf("ERROR: IsChainInSwitch() pindex0 null identified\n");
-            break;
-        }
-        if (pindex0->IsProofOfWork()) ++nHeightIncr;
-        pindex0 = pindex0->pprev;
-    }
-    return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
+    if (nHeight < 1443960)
+        return false;
+
+    // During the switch period (first ~1000 PoW blocks after 1,443,960)
+    // We approximate it as true for the first ~1500 blocks after the switch height
+    return (nHeight < 1443960 + 2000);
 }
 
 int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
