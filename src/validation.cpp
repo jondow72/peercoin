@@ -1667,23 +1667,18 @@ int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
         return nSubsidy + nFees;
     }
 
-    // Main logic using nHeight
     if (nHeight <= END_MAGI_POW_HEIGHT_V2) {
-        // For difficulty-dependent reward, we need bits or previous block
-        // Temporary simple version - improve later if needed
-        nSubsidy = GetProofOfWorkReward_OPM(nHeight);   // You may need to adjust this call
+        nSubsidy = GetProofOfWorkReward_OPM(nHeight);           // ← now using height version
     } else {
         nSubsidy = MIN_TX_FEE;
     }
 
     if (fDebugMagi) {
-        printf("@@PoWII-V2 (nHeight, rSubsidy) = (%" PRId64 ", %f)\n", 
-               nHeight, double(nSubsidy)/double(COIN));
+        printf("@@PoWII-V2 (nHeight=%" PRId64 ", Subsidy=%" PRId64 ")\n", nHeight, nSubsidy);
     }
 
-    if (IsChainInSwitchByHeight(nHeight)) {   // You may need to create this helper
+    if (IsChainInSwitchByHeight(nHeight)) 
         nSubsidy = (double)nSubsidy / 25.;
-    }
 
     return nSubsidy + nFees;
 }
