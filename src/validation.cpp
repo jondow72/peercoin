@@ -1648,11 +1648,11 @@ bool IsChainInSwitch(const CBlockIndex* pindex_)
     return ( (pindex_->nHeight >= 1443960) && (nHeightIncr < 1000) );
 }
 
-int64_t GetProofOfWorkRewardV2(const CBlockIndex* pindexPrev, int64_t nFees, bool fLastBlock)
+int64_t GetProofOfWorkRewardV2(int64_t nHeight, int64_t nFees, bool fLastBlock)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
-    int nHeight = pindex0->nHeight;
+//    const CBlockIndex* pindex0 = ( fLastBlock ? GetLastPoWBlockIndex(pindexPrev) : pindexPrev );
+//    int nHeight = pindex0->nHeight;
     int64_t nSubsidy = 0;
     
 //      double rDiff = GetDifficultyFromBitsV2(pindex0); 
@@ -3909,28 +3909,12 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase reward
     if (block.IsProofOfWork())
     {
-        const CBlockIndex* pindex = nullptr;
-        
-        if (nHeight >= 0) {
-            // Safe static dummy (lives for the entire program)
-            static CBlockIndex dummyIndex;
-            dummyIndex.nHeight = nHeight;
-            dummyIndex.pprev = nullptr;        // important to avoid crashes
-            dummyIndex.nTime = 0;
-            pindex = &dummyIndex;
-        }
-
         CAmount nPoWReward = 0;
         CAmount nFees = 0;
-        if (pindex && pindex->pprev) {
             // Use your original logic with protocol version check
-            nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
-                         GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
-                         GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-        } else {
-            // Fallback when pindex not available yet (early validation)
-            nPoWReward = GetProofOfWorkRewardV2(nullptr, nFees, true);
-        }
+            nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ?
+                         GetProofOfWorkRewardV2(nHeight, nFees, true) :
+                         GetProofOfWorkReward(block.nBits, nHeight, 0);
 
         // Your original fee adjustment
         CAmount nCoinbaseCost = 0;
