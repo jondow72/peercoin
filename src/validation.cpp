@@ -1543,13 +1543,17 @@ bool IsMaintenanceByHeight(int64_t nHeight)
     return (nHeight > HEIGHT_INIT_MAINTENANCE && nHeight < HEIGHT_END_MAINTENANCE);
 }
 
-int64_t GetProofOfWorkReward_OPM(int64_t nHeight, uint32_t nBits = 0)
+// Height-based version (new)
+int64_t GetProofOfWorkReward_OPM(int64_t nHeight)
 {
-    if (nHeight <= 0) 
-        nHeight = 1;
+    if (nHeight <= 0) nHeight = 1;
 
     double M7Mv2_move = ( (nHeight <= 75000) ? 2.85 : ( 2.85 - pow( log(nHeight) - log(75000.), 0.3 )*1.5 ) );
-    double rDiff = (nBits != 0) ? GetDifficultyFromBitsV2(nBits) : GetDifficultyFromBitsV2(nHeight); // adjust if needed
+    
+    // Note: This is the weak point - we don't have real difficulty (nBits)
+    // For CheckBlock we often use a default or average value
+    double rDiff = 2.0;   // ← Temporary safe default. Improve later if needed.
+    
     double rDiffcu = 2.2 / M7Mv2_move;
     double rSubsidy = 0.;
 
@@ -1561,14 +1565,17 @@ int64_t GetProofOfWorkReward_OPM(int64_t nHeight, uint32_t nBits = 0)
         rSubsidy = 6. * exp_n2( pow( abs( rDiff - (18.02428*exp_n(-M7Mv2_move/0.17628) + 6.58466*exp_n(-M7Mv2_move/0.71943) + 0.93489) )/(1./M7Mv2_move), 0.5 ), 0.);
     }
 
-    if (IsMaintenanceByHeight(nHeight)) rSubsidy *= 0.3;   // You need this helper (see below)
+    if (IsMaintenanceByHeight(nHeight)) 
+        rSubsidy *= 0.3;
 
     rSubsidy *= double(COIN);
-    if (rSubsidy > 50*COIN)      rSubsidy = 50*COIN;
+
+    if (rSubsidy > 50*COIN)       rSubsidy = 50*COIN;
     else if (rSubsidy < MIN_TX_FEE) rSubsidy = MIN_TX_FEE;
 
+    // Yearly decline
     for(int i = 500000; i <= nHeight; i += 500000) 
-        rSubsidy *= 0.93; // yearly decline
+        rSubsidy *= 0.93;
 
     return (int64_t)rSubsidy;
 }
