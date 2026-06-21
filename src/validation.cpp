@@ -3912,9 +3912,11 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         const CBlockIndex* pindex = nullptr;
         
         if (nHeight >= 0) {
-            // Simple dummy CBlockIndex (safe for reward calculation)
-            CBlockIndex dummyIndex;
+            // Safe static dummy (lives for the entire program)
+            static CBlockIndex dummyIndex;
             dummyIndex.nHeight = nHeight;
+            dummyIndex.pprev = nullptr;        // important to avoid crashes
+            dummyIndex.nTime = 0;
             pindex = &dummyIndex;
         }
 
