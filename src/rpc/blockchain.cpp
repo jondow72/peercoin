@@ -127,6 +127,158 @@ double GetDifficulty(const CBlockIndex* blockindex, const CBlockIndex* tip)
     return dDiff;
 }
 
+// Magi-specific functions
+extern CBlockIndex* pindexBest;
+static bool fDebugMagi = false;
+double GetMagiDifficulty(const CBlockIndex* blockindex)
+{
+    // Floating point number that is a multiple of the minimum difficulty,
+    // minimum difficulty = 1.0.
+    if (blockindex == NULL)
+    {
+        if (pindexBest == NULL)
+            return 1.0;
+        else
+            blockindex = GetLastBlockIndex(pindexBest, false);	// PoW
+    }
+
+    int nShift = (blockindex->nBits >> 24) & 0xff;
+
+    double dDiff =
+        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+
+    return dDiff;
+}
+
+double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
+{
+    int nPoSInterval = lookup;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    const CBlockIndex* pindex = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrevStake = NULL;
+
+    while (pindex && nStakesHandled < nPoSInterval)
+    {
+        if (pindex->IsProofOfStake())
+        {
+            dStakeKernelsTriedAvg += GetMagiDifficulty(pindex) * 4294967296.0;
+            nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
+            pindexPrevStake = pindex;
+            nStakesHandled++;
+        }
+
+        pindex = pindex->pprev;
+    }
+    if (fDebugMagi)
+	printf("@GetPoSKernelPS -> stake blocks for average = %d\n", nStakesHandled);
+
+    double result = 0;
+
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
+
+    if (IsProtocolV3(nBestHeight))
+        result *= STAKE_TIMESTAMP_MASK + 1;
+
+    return result;
+}
+
+// hashrate = diff * 2^32/blocktime = diff * 4 294 967 296 / blocktime
+double GetPoSKernelPSV2(const CBlockIndex* blockindex, int lookup)
+{
+    int nPoSInterval = lookup;
+    double diffTot = 0.;
+
+    const CBlockIndex* pindex0 = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == NULL || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+//    if (nActualBlockTime <= 0) {
+//	nActualBlockTimeTot = 0;
+//	nStakesHandled = 0;
+//    }
+//    else {
+      diffTot = GetMagiDifficulty(pindexPrev);
+//    }
+    for(int i = 1; i < nPoSInterval; i++)
+    {
+	pindexPrev = pindexPrevPrev;
+	pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+	if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) break;
+	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+//	if (nActualBlockTime > 0)
+//	{
+	    diffTot += GetMagiDifficulty(pindexPrev);
+	    nActualBlockTimeTot += nActualBlockTime;
+	    nStakesHandled++;
+//	}
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diffTot / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return diffTot*4294967296.0/double(nActualBlockTimeTot);
+}
+
+double GetPoSKernelPSV3(const CBlockIndex* blockindex)
+{
+    int nPoSInterval = 72;
+    double dStakeKernelsTriedAvg = 0., diff = 0.;
+
+    const CBlockIndex* pindex0 = ((blockindex == NULL) ? GetLastBlockIndex(pindexBest, true) : blockindex);
+    const CBlockIndex* pindexPrev = GetLastPoSBlockIndex(pindex0);
+    if (pindexPrev == NULL || !pindexPrev->nHeight) return 0;
+    const CBlockIndex* pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+    if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) return 0;
+
+    int nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime(), nActualBlockTimeTot = nActualBlockTime;
+    int nStakesHandled = 1;
+    if (nActualBlockTime <= 0) {
+	nActualBlockTimeTot = 0;
+	nStakesHandled = 0;
+    }
+    else {
+      diff = GetMagiDifficulty(pindexPrev);
+      dStakeKernelsTriedAvg = GetMagiDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+    }
+    for(int i = 1; i < nPoSInterval; i++)
+    {
+	pindexPrev = pindexPrevPrev;
+	pindexPrevPrev = GetLastPoSBlockIndex(pindexPrev->pprev);
+	if (pindexPrevPrev == NULL || !pindexPrevPrev->nHeight) break;
+	nActualBlockTime = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+	if (nActualBlockTime > 0)
+	{
+	    diff += GetMagiDifficulty(pindexPrev);
+	    dStakeKernelsTriedAvg += GetMagiDifficulty(pindexPrev) * 4294967296.0 / double(nActualBlockTime);
+	    nActualBlockTimeTot += nActualBlockTime;
+	    nStakesHandled++;
+	}
+    }
+    if (nActualBlockTimeTot == 0 || nStakesHandled == 0) return 0;
+    if (fDebugMagi)
+	printf("@GetPoSKernelPSV2 -> aver diff = %f, block time = %f\n", diff / (double)nStakesHandled, (double)nActualBlockTimeTot / (double)nStakesHandled);
+
+    return dStakeKernelsTriedAvg / double(nStakesHandled);
+}
+
 static int ComputeNextBlockAndDepth(const CBlockIndex* tip, const CBlockIndex* blockindex, const CBlockIndex*& next)
 {
     next = tip->GetAncestor(blockindex->nHeight + 1);
@@ -1906,7 +2058,7 @@ static RPCHelpMan getblockstats()
     ret_all.pushKV("minfeerate", (minfeerate == MAX_MONEY) ? 0 : minfeerate);
     ret_all.pushKV("mintxsize", mintxsize == MAX_BLOCK_SERIALIZED_SIZE ? 0 : mintxsize);
     ret_all.pushKV("outs", outputs);
-    ret_all.pushKV("subsidy", GetProofOfWorkReward(pindex.nBits, pindex.nTime));
+    ret_all.pushKV("subsidy", GetProofOfWorkReward(pindex.nBits, pindex.nHeight, 0));
     ret_all.pushKV("swtotal_size", swtotal_size);
     ret_all.pushKV("swtotal_weight", swtotal_weight);
     ret_all.pushKV("swtxs", swtxs);
