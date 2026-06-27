@@ -19,8 +19,8 @@ static const CAmount MIN_TX_FEE_PREV7 = CENT;
 static const CAmount MIN_TX_FEE = .0001 * COIN;
 static const CAmount PERKB_TX_FEE = MIN_TX_FEE;
 static const CAmount MIN_TXOUT_AMOUNT = MIN_TX_FEE;
-static const CAmount MAX_MINT_PROOF_OF_WORK = MIN_TX_FEE;
-static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
+static const CAmount MAX_MINT_PROOF_OF_WORK = 1125000;
+static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 1125000 * COIN;
 static const std::string CURRENCY_UNIT = "PPC";
 static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
