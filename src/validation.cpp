@@ -1747,7 +1747,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, int64_t nHeight)
     if (nHeight <= 0) 
         return nFees;   // Safe fallback
 
-    int64_t nNetWorkWeit = GetPoSKernelPSByHeight(nHeight);   // You may need to create this
+    int64_t nNetWorkWeit = nHeight
 
     double rAPR = (IsPoSIIProtocolV2(nHeight + 1)) ? 
                   GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, nHeight) : 
