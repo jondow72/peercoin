@@ -1716,23 +1716,28 @@ double GetAnnualInterest_TestNet(int64_t nNetWorkWeit, double rMaxAPR)
     return rAPR;
 }
 
-double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR) 
+// Height-based version (simple, no pindex needed)
+double GetAnnualInterest(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit = 20000.;
-    // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);  // Uncomment for testnet
     rAPR = ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) * rMaxAPR 
            / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) );
     return rAPR;
 }
 
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pindex0) 
+// Height-based version for V2
+double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, int64_t nHeight)
 {
-    double rAPR, rWeit = 500000.;  // Higher threshold for mature chain
-    // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
+    double rAPR, rWeit = 500000.;
     rAPR = ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) * rMaxAPR 
            / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) );
-    if (pindex0 && IsMaintenance(pindex0)) rAPR *= 1.2;
-    if (fDebugMagiPoS) LogPrintf("@PoS-APRV2 rAPR = %f\n", rAPR);
+
+    if (IsMaintenanceByHeight(nHeight)) 
+        rAPR *= 1.2;
+
+    if (fDebugMagiPoS) 
+        LogPrintf("@PoS-APRV2 rAPR = %f (height=%" PRId64 ")\n", rAPR, nHeight);
+
     return rAPR;
 }
 
