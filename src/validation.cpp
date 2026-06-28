@@ -2642,8 +2642,8 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
         }
         int64_t nPoWReward = (IsPoWIIRewardProtocolV2(block.nTime)) ?
-            GetProofOfWorkRewardV2(nHeight, nFees, true) :
-            GetProofOfWorkReward(block.nBits, nHeight, 0);
+            GetProofOfWorkRewardV2(pindex->nHeight, nFees, true) :
+            GetProofOfWorkReward(block.nBits, pindex->nHeight, 0);
         if (block.vtx[0]->GetValueOut() > nPoWReward) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                     strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
