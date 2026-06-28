@@ -1737,22 +1737,27 @@ double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR, CBlockIndex* pi
 }
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex) {
-    if (!pindex) return nFees;  // Fallback: No context = no mint
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, int64_t nHeight)
+{
+    if (nHeight <= 0) 
+        return nFees;   // Safe fallback
 
-    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = (IsPoSIIProtocolV2(pindex->nHeight + 1)) ? 
-                  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, pindex) : 
+    int64_t nNetWorkWeit = GetPoSKernelPSByHeight(nHeight);   // You may need to create this
+
+    double rAPR = (IsPoSIIProtocolV2(nHeight + 1)) ? 
+                  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, nHeight) : 
                   GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
 
-    // Annual to per-block: *33 / (365*33 +8) ≈ /365 (daily), with 33=~1 week? (tune if needed)
+    // Annual to per-block
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
-    if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%08x\n", 
-                          FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nBits);
+    if (fDebug) 
+        LogPrintf("GetProofOfStakeReward(height): create=%s nCoinAge=%" PRId64 " height=%" PRId64 "\n", 
+                  FormatMoney(nSubsidy).c_str(), nCoinAge, nHeight);
 
-    if (fDebug && fDebugMagiPoS) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
-                pindex->nHeight, nSubsidy / COIN, nCoinAge, rAPR);
+    if (fDebug && fDebugMagiPoS) 
+        LogPrintf("@@GPoSR nHeight = %" PRId64 ", nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
+                  nHeight, nSubsidy / COIN, nCoinAge, rAPR);
 
     return nSubsidy + nFees;
 }
