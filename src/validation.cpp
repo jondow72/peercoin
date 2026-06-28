@@ -1749,11 +1749,10 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, int64_t nHeight)
 
     int64_t nNetWorkWeit = nHeight
 
-    double rAPR = (IsPoSIIProtocolV2(nHeight + 1)) ? 
-                  GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, nHeight) : 
-                  GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+    double rAPR = (IsPoSIIProtocolV2(nHeight + 1)) 
+                ? GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE, nHeight) 
+                : GetAnnualInterest(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
 
-    // Annual to per-block
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
 
     if (fDebug) 
