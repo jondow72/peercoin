@@ -2546,19 +2546,6 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 nStakeReward = tx.GetValueOut() - nStakeValueIn;
                 fStakeCoinAgeChecked = true;
             }
-            if (tx.IsProofOfWork()) {
-                if (!pindex->pprev) {
-                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
-                }
-                int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
-                    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
-                    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-                if (block.vtx[0]->GetValueOut() > nPoWReward) {
-                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                            strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
-                                block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
-                }
-            }
             for (unsigned int i = 0; i < tx.vin.size(); i++)
                 nValueIn += view.AccessCoin(tx.vin[i].prevout).out.nValue;
             nValueOut += tx.GetValueOut();
@@ -2593,6 +2580,21 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops");
         }
 
+
+        if (!tx.IsCoinBase())
+        {
+            if (!pindex->pprev) {
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
+            }
+            int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
+                GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
+                GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+            if (block.vtx[0]->GetValueOut() > nPoWReward) {
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                        strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
+                            block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
+            }
+        }
         if (!tx.IsCoinBase())
         {
             std::vector<CScriptCheck> vChecks;
