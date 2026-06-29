@@ -2546,6 +2546,19 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 nStakeReward = tx.GetValueOut() - nStakeValueIn;
                 fStakeCoinAgeChecked = true;
             }
+            if (tx.IsProofOfWork()) {
+                if (!pindex->pprev) {
+                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
+                }
+                int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
+                    GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
+                    GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
+                if (block.vtx[0]->GetValueOut() > nPoWReward) {
+                    return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
+                            strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
+                                block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
+                }
+            }
             for (unsigned int i = 0; i < tx.vin.size(); i++)
                 nValueIn += view.AccessCoin(tx.vin[i].prevout).out.nValue;
             nValueOut += tx.GetValueOut();
@@ -2622,32 +2635,6 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
              nInputs <= 1 ? 0 : Ticks<MillisecondsDouble>(time_4 - time_2) / (nInputs - 1),
              Ticks<SecondsDouble>(time_verify),
              Ticks<MillisecondsDouble>(time_verify) / num_blocks_total);
-
-    if (block.IsProofOfWork()) {
-        if (!pindex->pprev) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
-        }
-        int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
-            GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
-            GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-        if (block.vtx[0]->GetValueOut() > nPoWReward) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                    strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
-                        block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
-        }
-    }
-
-    if (block.IsProofOfStake()) {
-        if (!fStakeCoinAgeChecked) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-missing", "ConnectBlock() : missing coinstake coin age data");
-        }
-        int64_t nPoSReward = GetProofOfStakeReward(nStakeCoinAge, nFees, pindex->pprev);
-        if (nStakeReward > nPoSReward) {
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount",
-                    strprintf("ConnectBlock() : stake reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
-                        nStakeReward, nPoSReward, pindex->nHeight));
-        }
-    }
 
     if (fJustCheck)
         return true;
