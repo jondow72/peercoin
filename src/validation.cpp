@@ -3979,7 +3979,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
 
-if (nHeight < 20000 && fCheckPOW && !CheckProofOfWork(...))
+if (nHeight < 20000 )
 {
     // Accept early blocks even if difficulty doesn't match
     return true;
