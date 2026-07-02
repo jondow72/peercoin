@@ -773,8 +773,11 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
 bool CheckProofOfStake(BlockValidationState &state, CBlockIndex* pindexPrev, const CTransactionRef& tx, unsigned int nBits, uint256& hashProofOfStake, unsigned int nTimeTx, Chainstate& chainstate)
 {
     // TEMPORARY BYPASS FOR REINDEX
-    if (pindexPrev->nHeight < 100000) {   // adjust this number higher if needed
-        LogPrintf("Bypassing PoS check for early block %d during reindex\n", pindexPrev->nHeight);
+    if (pindexPrev->nHeight < 500000) {   // adjust this number higher if needed
+    static int bypassCount = 0;
+    if (++bypassCount % 1000 == 0)
+        LogPrintf("Bypassed PoS check for block %d\n", pindexPrev->nHeight);
+
         return true;
     }
 
