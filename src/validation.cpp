@@ -3833,7 +3833,6 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
      printf("%lld\n", block.GetBlockTime());
      printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
      printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
-     printf("%lld\n", block.vtx[0]);
     
      // return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-time", "coinbase timestamp is too early");
 
