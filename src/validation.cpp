@@ -3830,7 +3830,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
     // Check coinbase timestamp
     if (block.GetBlockTime() > (block.vtx[0]->nTime ? (int64_t)block.vtx[0]->nTime : block.GetBlockTime()) + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9))
 //     printf("%lld\n", block.vtx[0]->nTime);
-     printf("%lld\n", block.GetBlockTime());
+//     printf("%lld\n", block.GetBlockTime());
 //     printf("%lld\n", MAX_FUTURE_BLOCK_TIME);
 //     printf("%lld\n", MAX_FUTURE_BLOCK_TIME_PREV9);
     
