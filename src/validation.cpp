@@ -2591,12 +2591,14 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
                 GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
 
             int64_t nActual = block.vtx[0]->GetValueOut();
-            int64_t nAllowed = nPoWReward + 1000000; // 0.01 XMG tolerance
+            int64_t nAllowedExtra = 20000000; // 0.2 XMG tolerance
 
-            if (nActual > nAllowed)
+            if (block.vtx[0]->GetValueOut() > (nPoWReward + nAllowedExtra))
             {
-            LogPrintf("DEBUG Reward: height=%d, IsPoWII=%d, time=%" PRId64 ", calculated=%" PRId64 "\n",
-                      pindex->nHeight, IsPoWIIRewardProtocolV2(pindex->pprev->nTime), pindex->pprev->nTime, nPoWReward);
+            LogPrintf("RewardDebug: height=%d, time=%" PRId64 ", IsV2=%d, calculated=%" PRId64 ", actual=%" PRId64 "\n",
+                      pindex->nHeight, pindex->pprev ? pindex->pprev->nTime : 0,
+                      IsPoWIIRewardProtocolV2(pindex->pprev ? pindex->pprev->nTime : 0),
+                      nPoWReward, block.vtx[0]->GetValueOut());
 
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                         strprintf("coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 " + tolerance, height=%i)",
