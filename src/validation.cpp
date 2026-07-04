@@ -2580,21 +2580,30 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops");
         }
 
-
         if (!tx.IsCoinBase())
         {
             if (!pindex->pprev) {
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "ConnectBlock() : missing previous block for proof-of-work reward check");
+                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-prev", "missing previous block for proof-of-work reward check");
             }
+
             int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
                 GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
                 GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-            if (block.vtx[0]->GetValueOut() > nPoWReward + 800000) { // allow 20000 sat extra
+
+            int64_t nActual = block.vtx[0]->GetValueOut();
+            int64_t nAllowed = nPoWReward + 1000000; // 0.01 XMG tolerance
+
+            if (nActual > nAllowed)
+            {
+                LogPrintf("WARNING: Coinbase reward mismatch at height %d: actual=%" PRId64 " calculated=%" PRId64 "\n",
+                          pindex->pprev->nHeight, nActual, nPoWReward);
+
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
-                        strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
-                            block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
+                        strprintf("coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 " + tolerance, height=%i)",
+                            nActual, nPoWReward, pindex->pprev->nHeight));
             }
         }
+
         if (!tx.IsCoinBase())
         {
             std::vector<CScriptCheck> vChecks;
