@@ -2589,7 +2589,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
             int64_t nPoWReward = (IsPoWIIRewardProtocolV2(pindex->pprev->nTime)) ?
                 GetProofOfWorkRewardV2(pindex->pprev, nFees, true) :
                 GetProofOfWorkReward(pindex->pprev->nBits, pindex->pprev->nHeight, nFees);
-            if (block.vtx[0]->GetValueOut() > nPoWReward + 20000) { // allow 20000 sat extra
+            if (block.vtx[0]->GetValueOut() > nPoWReward + 800000) { // allow 20000 sat extra
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                         strprintf("ConnectBlock() : coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 ", height=%i)",
                             block.vtx[0]->GetValueOut(), nPoWReward, pindex->pprev->nHeight));
