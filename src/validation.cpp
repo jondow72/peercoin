@@ -2595,8 +2595,8 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
 
             if (nActual > nAllowed)
             {
-                LogPrintf("WARNING: Coinbase reward mismatch at height %d: actual=%" PRId64 " calculated=%" PRId64 "\n",
-                          pindex->pprev->nHeight, nActual, nPoWReward);
+            LogPrintf("DEBUG Reward: height=%d, IsPoWII=%d, time=%" PRId64 ", calculated=%" PRId64 "\n",
+                      pindex->nHeight, IsPoWIIRewardProtocolV2(pindex->pprev->nTime), pindex->pprev->nTime, nPoWReward);
 
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                         strprintf("coinbase reward exceeded (actual=%" PRId64 " vs calculated=%" PRId64 " + tolerance, height=%i)",
