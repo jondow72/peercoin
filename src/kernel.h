@@ -79,7 +79,6 @@ unsigned int HowSuperMajority(int minVersion, const CBlockIndex* pstart, unsigne
 unsigned int GetStakeEntropyBit(const CBlock& block);
 
 // Get time weight
-int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
 int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 // Get time weight using supplied timestamps
