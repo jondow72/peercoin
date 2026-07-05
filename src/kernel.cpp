@@ -636,7 +636,7 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
     // this change increases active coins participating the hash and helps
     // to secure the network when proof-of-stake difficulty is low
 //    int64_t nTimeWeight = min((int64_t)nTimeTx - (txPrev->nTime? txPrev->nTime : nTimeBlockFrom), params.nStakeMaxAge) - (IsProtocolV03(nTimeTx)? params.nStakeMinAge : 0)
-    int64_t nTimeWeight = GetMagiWeightV2(nValueIn, txPrev.nTime, nTimeTx);
+    int64_t nTimeWeight = GetMagiWeightV2(nValueIn, (txPrev->nTime? txPrev->nTime : nTimeBlockFrom), nTimeTx);
     CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
