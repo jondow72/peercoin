@@ -59,6 +59,12 @@
 #include <validationinterface.h>
 #include <warnings.h>
 
+//#include <../crypto/m7m.h>  // For Magi M7M M7Mv2
+//#include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
+//#include <inttypes.h>
+#include <rpc/blockchain.h>
+//#include <bignum.h>
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>
