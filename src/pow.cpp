@@ -335,8 +335,8 @@ static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256(
 static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
 
 // Debug flag for Magi
-static bool fDebug = false;
-static bool fDebugMagiPoS = false; // Set via -debug=MagiPoS
+static bool fDebug = true; // Set via true or false
+static bool fDebugMagiPoS = true; // Set via true or false
 
 #define HEIGHT_LOOKUP_DEPTH 10
 unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProofOfStake)

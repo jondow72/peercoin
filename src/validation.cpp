@@ -1408,10 +1408,10 @@ int64_t nTimeBestReceived = 0;
 
 
 
-// Debug flag for Magi
-static bool fDebug = false;
-static bool fDebugMagi = false; // Set via -debug=magi
-static bool fDebugMagiPoS = false; // Set via -debug=MagiPoS
+// Debug flag for Magi 
+static bool fDebug = true; // Set via true or false
+static bool fDebugMagi = true; // Set via true or false
+static bool fDebugMagiPoS = true; // Set via true or false
 
 double GetDifficultyFromBits(unsigned int nBits){
     int nShift = (nBits >> 24) & 0xff;
