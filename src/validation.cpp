@@ -3434,8 +3434,9 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
 
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
-    if (block.vtx[0]->nTime < 1764975810 ) {   // 5 million
-        LogPrintf("CheckBlock() : Bypassed PoS check for block %d\n", block.vtx[0]->nTime);
+    // Time-based bypass for early blocks (better than height in some cases)
+    if (block.GetBlockTime() < 1764975810) {   // Your 5 million block timestamp
+        LogPrintf("CheckBlock() : Bypassed PoS check for early block time=%" PRId64 "\n", block.GetBlockTime());
         return true;
     }
 
