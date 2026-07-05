@@ -1994,7 +1994,7 @@ static int64_t num_blocks_total = 0;
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
     if (pindex && pindex->nHeight < 5251587) {   // 1 million
-        LogPrintf("Bypassed PoS check for block %d\n", pindex->nHeight);
+        LogPrintf("PeercoinContextualBlockChecks() : Bypassed PoS check for block %d\n", pindex->nHeight);
         return true;
     }
 
