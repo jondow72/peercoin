@@ -61,7 +61,7 @@
 
 //#include <../crypto/m7m.h>  // For Magi M7M M7Mv2
 //#include <../crypto/magimath.h>  // For mapBlockIndex and Magi constants
-//#include <inttypes.h>
+#include <inttypes.h>
 #include <rpc/blockchain.h>
 //#include <bignum.h>
 
@@ -1393,7 +1393,7 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
 if (nTime < 1764975810) { // blocktime 5 million
-    nSubsidy = 112500 * COIN;
+    int64_t nSubsidy = 112500 * COIN;
 } else {
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
     CBigNum bnTarget;
