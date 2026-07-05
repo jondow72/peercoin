@@ -12,6 +12,9 @@ class CBlockHeader;
 class CBlock;
 class Chainstate;
 
+// To decrease granularity of timestamp
+// Supposed to be 2^n-1
+static const int STAKE_TIMESTAMP_MASK = 15;
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
