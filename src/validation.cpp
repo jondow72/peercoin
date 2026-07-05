@@ -1993,6 +1993,11 @@ static int64_t num_blocks_total = 0;
 // These checks can only be done when all previous block have been added.
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
+    if (pindex && pindex->nHeight < 5251587) {   // 1 million
+        LogPrintf("Bypassed PoS check for block %d\n", pindex->nHeight);
+        return true;
+    }
+
     uint256 hashProofOfStake = uint256();
     // peercoin: verify hash target and signature of coinstake tx
     if (block.IsProofOfStake() && !CheckProofOfStake(state, pindex->pprev, block.vtx[1], block.nBits, hashProofOfStake, block.vtx[1]->nTime ? block.vtx[1]->nTime : block.nTime, chainstate)) {
