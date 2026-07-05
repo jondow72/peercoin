@@ -24,6 +24,9 @@ static const CAmount MAX_MINT_PROOF_OF_WORK_V10 = 50 * COIN;
 static const std::string CURRENCY_UNIT = "PPC";
 static const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
+// Magi-specific reward functions
+extern int nBestHeight;
+
 /** No amount larger than this (in satoshi) is valid.
  *
  * Note that this constant is *not* the total money supply, which in Bitcoin
