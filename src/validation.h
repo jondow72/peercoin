@@ -1224,7 +1224,7 @@ bool DeploymentEnabled(const ChainstateManager& chainman, DEP dep)
 
 using FopenFn = std::function<FILE*(const fs::path&, const char*)>;
 
-
+// magi:
 double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR);
 // peercoin:
 CAmount GetProofOfWorkReward(unsigned int nBits, uint32_t nTime);
