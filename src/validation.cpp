@@ -1993,7 +1993,7 @@ static int64_t num_blocks_total = 0;
 // These checks can only be done when all previous block have been added.
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
-    if (pindex && pindex->nHeight < 5251587) {   // 1 million
+    if (pindex && pindex->nHeight < 5000000) {   // 5 million
         LogPrintf("PeercoinContextualBlockChecks() : Bypassed PoS check for block %d\n", pindex->nHeight);
         return true;
     }
@@ -3637,6 +3637,11 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader>& headers)
  */
 static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
 {
+    // TEMPORARY BYPASS FOR REINDEX
+    if (pindexPrev && pindexPrev->nHeight < 5000000) {   // 5 million
+        LogPrintf("PeercoinContextualBlockChecks() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
+        return true;
+    }
     AssertLockHeld(::cs_main);
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
