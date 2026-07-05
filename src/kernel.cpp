@@ -700,20 +700,6 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
 // Check kernel hash target and coinstake signature
 bool CheckProofOfStake(BlockValidationState &state, CBlockIndex* pindexPrev, const CTransactionRef& tx, unsigned int nBits, uint256& hashProofOfStake, unsigned int nTimeTx, Chainstate& chainstate)
 {
-    // TEMPORARY BYPASS FOR REINDEX
-    if (pindexPrev && pindexPrev->nHeight < 5251587) {   // 1 million
-        LogPrintf("Bypassed PoS check for block %d\n", pindexPrev->nHeight);
-        return true;
-    }
-
-    // Transaction index is required...
-    if (!g_txindex) {
-        LogPrintf("Bypassing txindex check - txindex not ready\n");
-        return true;
-    }
-
-    // ... your normal CheckProofOfStake code ...
-
     if (!tx->IsCoinStake())
         return error("CheckProofOfStake() : called on non-coinstake %s", tx->GetHash().ToString());
 
