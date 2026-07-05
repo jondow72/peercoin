@@ -169,6 +169,11 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
 bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, const Consensus::Params& params, unsigned int nTimeTx, uint64_t nMoneySupply)
 {
+    if (coin.nTime() < 1764975810) {   // Your 5 million block timestamp
+//        LogPrintf("Consensus::CheckTxInputs() : Bypassed PoS check for early block time=%" PRId64 "\n", coin.nTime());
+        return true;
+    }
+
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
         return state.Invalid(TxValidationResult::TX_MISSING_INPUTS, "bad-txns-inputs-missingorspent",
