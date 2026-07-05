@@ -1390,7 +1390,25 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
+//------------------------------------------------------------------------------------------
+
+
+//int64_t nChainStartTime = 1407209706;
+
+int nBestHeight = -1;
+
+CBigNum bnBestChainTrust = 0;
+CBigNum bnBestInvalidTrust = 0;
+uint256 hashBestChain = uint256();  // Explicitly constructs a zero-initialized uint256
 CBlockIndex* pindexBest = NULL;
+int64_t nTimeBestReceived = 0;
+
+
+
+// Debug flag for Magi 
+static bool fDebug = true; // Set via true or false
+static bool fDebugMagi = true; // Set via true or false
+static bool fDebugMagiPoS = true; // Set via true or false
 
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
@@ -1463,7 +1481,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 }
 */
 
-
+//------------------------------------------------------------------------------------------
 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
