@@ -1426,6 +1426,11 @@ if (nTime < 1764975810) return 112500 * COIN; // blocktime 5 million
     return nSubsidy;
 }
 
+// Debug flag for Magi 
+static bool fDebug = true; // Set via true or false
+//static bool fDebugMagi = true; // Set via true or false
+static bool fDebugMagiPoS = true; // Set via true or false
+
 double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR)
 {
     double rAPR, rWeit = 500000.;  // Higher threshold for mature chain
