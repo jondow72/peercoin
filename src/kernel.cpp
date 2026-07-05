@@ -111,21 +111,6 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
         ( 0,	0x0e00670b )
     ;
 
-inline double wfa(double x)
-{
-    return (1 / (1 + exp_n( (x-0.03)/0.005 ))) + 1;
-}
-
-inline double wfb(double x)
-{
-    return (1 / (1 + exp_n( (x-0.06)/0.06 ))) + 1;
-}
-
-inline double wfc(double x)
-{
-    return (1 / (1 + exp_n( (x-0.6)/0.3 )));
-}
-
 inline double wfaV2(double x)
 {
     return (1 / (1 + exp_n( (x-0.045)/0.0075 ))) + 1;
@@ -143,24 +128,6 @@ inline double wfcV2(double x)
 
 // Magi-specific functions
 static bool fDebugMagiPoS = false;
-
-// Get time weight
-int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
-{
-    double nWeight = 0;
-    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
-    
-    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-
-    if (rMro/6 >= MAX_MAGI_BALANCE_in_STAKE) return 0;
-
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 4. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 4. / 8.177) ) * rStakeDays;
-
-    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
-}
 
 // Get time weight
 int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
@@ -669,9 +636,7 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
     // this change increases active coins participating the hash and helps
     // to secure the network when proof-of-stake difficulty is low
 //    int64_t nTimeWeight = min((int64_t)nTimeTx - (txPrev->nTime? txPrev->nTime : nTimeBlockFrom), params.nStakeMaxAge) - (IsProtocolV03(nTimeTx)? params.nStakeMinAge : 0)
-    int64_t nTimeWeight = (IsPoSIIProtocolV2(pindexPrev->nHeight+1)) ?
-			GetMagiWeightV2(nValueIn, (txPrev->nTime? txPrev->nTime : nTimeBlockFrom), nTimeTx) : 
-			GetMagiWeight(nValueIn, (txPrev->nTime? txPrev->nTime : nTimeBlockFrom), nTimeTx);
+    int64_t nTimeWeight = GetMagiWeightV2(nValueIn, txPrev.nTime, nTimeTx);
     CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
