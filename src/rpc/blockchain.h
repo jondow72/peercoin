@@ -36,6 +36,8 @@ static constexpr int NUM_GETBLOCKSTATS_PERCENTILES = 5;
  */
 double GetDifficulty(const CBlockIndex* blockindex, const CBlockIndex* tip);
 
+extern double GetPoSKernelPS(const CBlockIndex* blockindex = NULL, int lookup = 72);
+
 /** Callback for when block tip changed. */
 void RPCNotifyBlockChange(const CBlockIndex*);
 
