@@ -145,37 +145,6 @@ inline double wfcV2(double x)
 static bool fDebugMagiPoS = false;
 
 // Get time weight
-int64_t GetMagiWeight_TestNet(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
-{
-    double nWeight = 0;
-    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
-    
-    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
-
-    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60), (int64_t)nStakeMaxAge));
-}
-
-int64_t GetMagiWeight_TestNetV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
-{
-    double nWeight = 0;
-    int64_t nnMoneySupply = MAX_MONEY_STAKE_REF;
-
-    if (nValueIn >= MAX_MONEY_STAKE_REF) return 0;
-    
-    double rStakeDays = (double)(max((int64_t)0, nIntervalEnd - nIntervalBeginning - GetStakeMinAge(nIntervalEnd))) / (24. * 60. * 60.);
-    double rMro = (double)(nValueIn*6)/(double)nnMoneySupply, rEpf = exp_n(1/wfa(rMro)/wfb(rMro)/wfc(rMro));
-    nWeight = 5.55243 * ( pow(rEpf, -0.3 * rStakeDays * 480. / 8.177) - pow(rEpf, -0.6 * rStakeDays * 480. / 8.177) ) * rStakeDays * 240.;
-
-    if (fDebugMagiPoS) LogPrintf("@GetMagiWeight_TestNetV2 = %" PRId64 "\n", max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge))));
-
-    return max((int64_t)0, min((int64_t)(nWeight * 24 * 60 * 60/2), (int64_t)(nStakeMaxAge)));
-}
-
-// Get time weight
 int64_t GetMagiWeight(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
