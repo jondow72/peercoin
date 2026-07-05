@@ -1425,7 +1425,7 @@ if (nTime < 1764975810) return 112500 * COIN; // blocktime 5 million
 
     return nSubsidy;
 }
-
+/*
 // Debug flag for Magi 
 static bool fDebug = true; // Set via true or false
 //static bool fDebugMagi = true; // Set via true or false
@@ -1446,7 +1446,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
     if (!pindex) return nFees;  // Fallback: No context = no mint
 
     int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = GeGetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
+    double rAPR = GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
 
     // Annual to per-block: *33 / (365*33 +8) ≈ /365 (daily), with 33=~1 week? (tune if needed)
     int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
@@ -1459,7 +1459,7 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pind
 
     return nSubsidy + nFees;
 }
-
+*/
 
 
 
