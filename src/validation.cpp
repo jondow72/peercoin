@@ -1392,9 +1392,7 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
-if (nTime < 1764975810) { // blocktime 5 million
-    int64_t nSubsidy = 112500 * COIN;
-} else {
+if (nTime < 1764975810) return 112500 * COIN; // blocktime 5 million
     CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
@@ -1424,7 +1422,7 @@ if (nTime < 1764975810) { // blocktime 5 million
 
     if (gArgs.GetBoolArg("-printcreation", false))
         LogPrintf("%s: create=%s nBits=0x%08x nSubsidy=%lld\n", __func__, FormatMoney(nSubsidy), nBits, nSubsidy);
-}
+
     return nSubsidy;
 }
 
