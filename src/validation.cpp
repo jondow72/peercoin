@@ -1390,6 +1390,8 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
     return result;
 }
 
+CBlockIndex* pindexBest = NULL;
+
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
 if (nTime < 1764975810) return 112500 * COIN; // blocktime 5 million
