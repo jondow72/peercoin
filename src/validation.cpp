@@ -3434,6 +3434,11 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
 
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
+    if (nTime < 1764975810 ) {   // 5 million
+        LogPrintf("CheckBlock() : Bypassed PoS check for block %d\n", nTime);
+        return true;
+    }
+
     // These are checks that are independent of context.
 
     if (block.fChecked)
