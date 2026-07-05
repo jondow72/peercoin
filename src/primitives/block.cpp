@@ -15,11 +15,7 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if (nTime < 1414330200) {
-        return hash_M7M(BEGIN(nVersion), END(nNonce));
-    } else {
-        return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
-    }
+    return hash_M7M_v2(BEGIN(nVersion), END(nNonce), nNonce);
 }
 
 std::string CBlock::ToString() const
