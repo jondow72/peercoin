@@ -1994,7 +1994,7 @@ static int64_t num_blocks_total = 0;
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
     // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < 1764975810) {   // Your 5 million block timestamp
+    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
 //        LogPrintf("PeercoinContextualBlockChecks() : Bypassed PoS check for block %d\n", pindex->nHeight);
         return true;
     }
@@ -3373,7 +3373,7 @@ void Chainstate::ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pin
 static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < 1764975810) {   // Your 5 million block timestamp
+    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
 //        LogPrintf("CheckBlockHeader() : Bypassed PoS check for early block time=%" PRId64 "\n", block.GetBlockTime());
         return true;
     }
@@ -3441,7 +3441,7 @@ static bool CheckWitnessMalleation(const CBlock& block, bool expect_witness_comm
 bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSignature)
 {
     // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < 1764975810) {   // Your 5 million block timestamp
+    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
 //        LogPrintf("CheckBlock() : Bypassed PoS check for early block time=%" PRId64 "\n", block.GetBlockTime());
         return true;
     }
@@ -3645,7 +3645,7 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader>& headers)
 static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
 {
     // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < 1764975810) {   // Your 5 million block timestamp
+    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
         LogPrintf("ContextualCheckBlockHeader() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
         return true;
     }
