@@ -3646,7 +3646,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
 {
     // Time-based bypass for early blocks (better than height in some cases)
     if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
-        LogPrintf("ContextualCheckBlockHeader() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
+//        LogPrintf("ConnectBlock() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
         return true;
     }
     AssertLockHeld(::cs_main);
