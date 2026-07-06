@@ -18,10 +18,7 @@
 #include <script/interpreter.h>
 #include <script/script.h>
 #include <uint256.h>
-#include <arith_uint256.h>
 #include <util/strencodings.h>
-
-#include "../bignum.h"
 
 #include <algorithm>
 #include <cassert>
@@ -36,7 +33,6 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     txNew.vin.resize(1);
     txNew.vout.resize(1);
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(9999) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
     txNew.nTime = nTimeTx;
