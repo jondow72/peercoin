@@ -169,12 +169,6 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
 bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, const Consensus::Params& params, unsigned int nTimeTx, uint64_t nMoneySupply)
 {
-// Bypass for early transactions during reindex
-if (coin.nTime < 1764975810) {
-    printf("Bypassed time check for early tx: %lld\n", coin.nTime);
-    // continue with normal validation or return success
-}
-
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
         return state.Invalid(TxValidationResult::TX_MISSING_INPUTS, "bad-txns-inputs-missingorspent",
@@ -186,6 +180,12 @@ if (coin.nTime < 1764975810) {
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);
         assert(!coin.IsSpent());
+
+// Bypass for early transactions during reindex
+if (coin.nTime < 1764975810) {
+    printf("Bypassed time check for early tx: %lld\n", coin.nTime);
+    // continue with normal validation or return success
+}
 
         // If prev is coinbase, check that it's matured
         if ((coin.IsCoinBase() || coin.IsCoinStake()) && nSpendHeight - coin.nHeight < params.nCoinbaseMaturity) {
