@@ -151,6 +151,9 @@ public:
 
         genesis = CreateGenesisBlock(1407209706, 1410566399, 1780637, 0x1e0fffff, 1, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
+
+        printf("genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
+
         assert(consensus.hashGenesisBlock == uint256S("0x000004c91ca895a8c63176b1671eff34291ad671e59ae46630ffd8f985dd56cc"));
         assert(genesis.hashMerkleRoot == uint256S("0x70070d9e41ffd85685f8017fa8620fb5572ed8443822d799015d01d39e7fd4af"));
 
