@@ -47,7 +47,8 @@
 //----------------------------------------------------------------------------
 
 #include <../util/system.h> // For fTestNet
-
+//static const int nBypass = 1764975810; // 5 million
+static const int nBypass = 1783458000;
 extern CBlockIndex* pindexBest;
 // bool fTestNetWeightV2 = false; // temp declared
 extern bool fTestNetWeightV2;
