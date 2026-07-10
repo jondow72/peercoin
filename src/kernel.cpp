@@ -129,6 +129,8 @@ inline double wfcV2(double x)
 // Magi-specific functions
 static bool fDebugMagiPoS = false;
 
+inline unsigned int GetStakeMinAge(unsigned int nTime0) { return ( (nTime0 > 1503248400) ? (60 * 60 * 8) : (60 * 60 * 2) ); }
+
 // Get time weight
 int64_t GetMagiWeightV2(int64_t nValueIn, int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {

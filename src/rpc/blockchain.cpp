@@ -160,6 +160,13 @@ double GetMagiDifficulty(const CBlockIndex* blockindex)
 
     return dDiff;
 }
+#define HEIGHT_PROTOCOL_V3 1825100
+inline bool IsProtocolV3(int nHeight)
+{
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
+    if (fTestNet) return true;
+    return (nHeight > HEIGHT_PROTOCOL_V3);
+}
 
 double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
 {
