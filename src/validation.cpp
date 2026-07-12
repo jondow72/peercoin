@@ -3586,19 +3586,9 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader>& headers)
  */
 static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
 {
-    // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
-//        LogPrintf("ConnectBlock() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
-        return true;
-    }
     AssertLockHeld(::cs_main);
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
-
-    // Check proof of work or proof-of-stake
-    const Consensus::Params& consensusParams = chainman.GetConsensus();
-    if (block.nBits != GetNextTargetRequired(pindexPrev, block.nFlags & CBlockIndex::BLOCK_PROOF_OF_STAKE, consensusParams))
-        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work/stake");
 
     // Check against checkpoints
     if (chainman.m_options.checkpoints_enabled) {
@@ -3611,6 +3601,17 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT, "bad-fork-prior-to-checkpoint");
         }
     }
+
+    // 2. Time-based bypass for early blocks (moved after checkpoints)
+    if (block.GetBlockTime() < nBypass) {   
+        // LogPrintf("ConnectBlock() : Bypassed PoS check for block %d\n", pindexPrev->nHeight);
+        return true;
+    }
+
+    // Check proof of work or proof-of-stake
+    const Consensus::Params& consensusParams = chainman.GetConsensus();
+    if (block.nBits != GetNextTargetRequired(pindexPrev, block.nFlags & CBlockIndex::BLOCK_PROOF_OF_STAKE, consensusParams))
+        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work/stake");
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9) < pindexPrev->GetBlockTime())
