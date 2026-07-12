@@ -7,6 +7,7 @@
 
 #include <arith_uint256.h>
 #include <chain.h>
+#include <consensus/amount.h>
 #include <primitives/block.h>
 #include <uint256.h>
 
@@ -14,6 +15,10 @@
 #include <chainparams.h>
 #include <kernel.h>
 #include <atomic>
+#include <util/system.h> // For fTestNet
+#include <rpc/blockchain.h>
+#include <inttypes.h>
+
 
 static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
 static int64_t nDAAHalfLife = 24 * 60 * 60;
@@ -264,6 +269,144 @@ arith_uint256 CalculateASERT(const arith_uint256 &refTarget,
     return nextTarget;
 }
 
+
+static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
+static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
+
+static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
+static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
+
+// Debug flag for Magi
+static bool fDebug = true; // Set via true or false
+
+#define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
+int64_t GetTargetSpacingWork(int nHeight)
+{
+    return ( (nHeight >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) ? 
+        nTargetSpacingV3Work : nTargetSpacingWork );
+}
+
+#define MQW_TIME_COEFF 1.0
+#define MQW_AVER_COEFF 1.0
+#define MQW_EXPON_COEFF 0.15
+#define WEIGHT_SCALE 100.0
+#define WEIGHT_MIN 0.005
+#define WEIGHT_MAX 0.8
+#define MQW_DUMMY_NUMBER 100
+unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStake)
+{
+    /* Magi Quantum Wave (MQW) for XMG - Coin Magi, written by Joe Lao */
+    if (fProofOfStake) return GetNextTargetRequired_v1(pindexLast, fProofOfStake);
+
+    int64_t nActualBlockSpacing, nActualTimeSpanMQW;
+    int64_t nAveragedBlocks = 1, nTotPastBlocks = 13;
+    CBigNum bnAverage;
+    CBigNum bnAveragePrev;
+
+    CBigNum bnTargetLimit = bnProofOfWorkLimit;
+    if (fProofOfStake)
+    {
+        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
+        bnTargetLimit = bnProofOfStakeLimit;
+    }
+    if (pindexLast == NULL) {
+        return bnTargetLimit.GetCompact(); // genesis block
+    }
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
+
+    if (pindexPrev->pprev == NULL) {
+        return bnTargetLimit.GetCompact(); // first block
+    }
+
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
+
+    if (pindexPrevPrev->pprev == NULL) {
+        return bnTargetLimit.GetCompact(); // second block
+    }
+
+    nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+
+    if(nActualBlockSpacing < 0) {
+        nActualBlockSpacing = 1;
+    }
+
+    nActualTimeSpanMQW = nActualBlockSpacing;
+    double fw = ( 1. - exp_n(-double(nActualBlockSpacing) * MQW_EXPON_COEFF*MQW_TIME_COEFF / double(GetTargetSpacingWork(pindexLast->nHeight+1))) ) * MQW_AVER_COEFF;
+    if (fw < WEIGHT_MIN) {
+        fw = WEIGHT_MIN;
+    } else if (fw > WEIGHT_MAX) {
+        fw = WEIGHT_MAX;
+    }
+
+    bnAverage.SetCompact(pindexPrev->nBits);
+    bnAverage *= ((int64_t)(fw * WEIGHT_SCALE * MQW_DUMMY_NUMBER));
+
+    double rWeightTot = fw * WEIGHT_SCALE * MQW_DUMMY_NUMBER;
+    double rWeight = 1.-fw;
+
+    for(unsigned int i = 1; pindexPrevPrev; i++)
+    {
+        if (i >= nTotPastBlocks) {
+            break;
+        }
+
+        pindexPrev = pindexPrevPrev;
+        pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
+
+        if (pindexPrevPrev == NULL) { assert(pindexPrev); break; }
+        nActualBlockSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+
+        if (nActualBlockSpacing > 0)
+        {
+            nAveragedBlocks++;
+            nActualTimeSpanMQW += nActualBlockSpacing;
+            fw = ( 1. - exp_n(-double(nActualBlockSpacing) * MQW_EXPON_COEFF*MQW_TIME_COEFF / double(GetTargetSpacingWork(pindexLast->nHeight+1))) ) * MQW_AVER_COEFF;
+
+            if (fw < WEIGHT_MIN) {
+                fw = WEIGHT_MIN;
+            } else if (fw > WEIGHT_MAX) {
+                fw = WEIGHT_MAX;
+            }
+
+            bnAverage += (CBigNum().SetCompact(pindexPrev->nBits)) * ((int64_t)(fw * rWeight * WEIGHT_SCALE * MQW_DUMMY_NUMBER));
+            rWeightTot += (fw * rWeight * WEIGHT_SCALE * MQW_DUMMY_NUMBER);
+            rWeight *= (1.-fw);
+        }
+    }
+
+    int64_t nWeightTot = (int64_t)rWeightTot;
+
+    if (nWeightTot < 1) {
+        nWeightTot = 1;
+    }
+    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
+
+    bnAverage /= nWeightTot;
+
+    CBigNum bnNew(bnAverage);
+
+    int64_t nTargetTimeSpanMQW = nAveragedBlocks * GetTargetSpacingWork(pindexLast->nHeight+1);
+
+    if (nActualTimeSpanMQW < nTargetTimeSpanMQW / 3) {
+        nActualTimeSpanMQW = nTargetTimeSpanMQW / 3;
+    }
+
+    if (nActualTimeSpanMQW > nTargetTimeSpanMQW * 3){
+        nActualTimeSpanMQW = nTargetTimeSpanMQW * 3;
+    }
+
+    // Retarget
+    bnNew *= nActualTimeSpanMQW;
+    bnNew /= nTargetTimeSpanMQW;
+
+    if (bnNew > bnProofOfWorkLimit){
+        bnNew = bnProofOfWorkLimit;
+    }
+
+    return bnNew.GetCompact();
+}
+
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, const Consensus::Params& params)
 {
     if (pindexLast == nullptr || params.fPowNoRetargeting)
@@ -311,7 +454,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (bnNew > CBigNum(params.powLimit))
         bnNew = CBigNum(params.powLimit);
 
-    return bnNew.GetCompact();
+    return MagiQuantumWave_v2(pindexLast, fProofOfStake);
+//    return bnNew.GetCompact();
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
