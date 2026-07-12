@@ -161,13 +161,6 @@ double GetMagiDifficulty(const CBlockIndex* blockindex)
 
     return dDiff;
 }
-#define HEIGHT_PROTOCOL_V3 1825100
-inline bool IsProtocolV3(int nHeight)
-{
-    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-    if (fTestNet) return true;
-    return (nHeight > HEIGHT_PROTOCOL_V3);
-}
 
 double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
 {
@@ -196,10 +189,10 @@ double GetPoSKernelPS(const CBlockIndex* blockindex, int lookup)
     double result = 0;
 
     if (nStakesTime)
-        result = dStakeKernelsTriedAvg / nStakesTime;
-
-    if (IsProtocolV3(nBestHeight))
-        result *= STAKE_TIMESTAMP_MASK + 1;
+    {
+        // Combined the division and V3 protocol multiplier directly
+        result = (dStakeKernelsTriedAvg / nStakesTime) * (STAKE_TIMESTAMP_MASK + 1);
+    }
 
     return result;
 }
