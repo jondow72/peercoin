@@ -1962,13 +1962,12 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
 
     unsigned int nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
 
-    // Undo temporary pindex fields
+    // undo pindex fields
     pindex->nFlags           = nFlagsBackup;
     pindex->nStakeModifier   = nStakeModifierBackup;
     pindex->hashProofOfStake = hashProofOfStakeBackup;
-    // Compute nStakeModifierChecksum end
+    // compute nStakeModifierChecksum end
 
-    // 2. Enforce Stake Modifier Checkpoints to match old hardcoded chain rules
     if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
         return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
 
@@ -1995,12 +1994,13 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
         return true;
     }
 
-    // 4. Post-Bypass heavy live validation (Only runs if a block is newer than mid-2026)
+    // peercoin: verify hash target and signature of coinstake tx
     if (block.IsProofOfStake() && !CheckProofOfStake(state, pindex->pprev, block.vtx[1], block.nBits, hashProofOfStake, block.vtx[1]->nTime ? block.vtx[1]->nTime : block.nTime, chainstate)) {
         LogPrintf("WARNING: %s: check proof-of-stake failed for block %s\n", __func__, block.GetHash().ToString());
-        return false; 
+        return false; // do not error here as we expect this during initial block download
     }
 
+    // peercoin: check for duplicity of stake
     if (block.IsProofOfStake()) {
         std::pair<COutPoint, unsigned int> proofOfStake = block.GetProofOfStake();
         if (pindex->IsProofOfStake() && proofOfStake.first == pindex->prevoutStake) {
@@ -2016,6 +2016,7 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
     if (fJustCheck)
         return true;
 
+    // write everything to index
     if (block.IsProofOfStake())
     {
         pindex->prevoutStake = block.vtx[1]->vin[0].prevout;
@@ -2027,7 +2028,7 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
         return error("ConnectBlock() : SetStakeEntropyBit() failed");
     pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
     pindex->nStakeModifierChecksum = nStakeModifierChecksum;
-    chainstate.m_blockman.m_dirty_blockindex.insert(pindex); 
+    chainstate.m_blockman.m_dirty_blockindex.insert(pindex); // queue a write to disk
 
     return true;
 }
