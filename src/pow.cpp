@@ -15,10 +15,6 @@
 #include <chainparams.h>
 #include <kernel.h>
 #include <atomic>
-#include <util/system.h> // For fTestNet
-#include <rpc/blockchain.h>
-#include <inttypes.h>
-
 
 static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
 static int64_t nDAAHalfLife = 24 * 60 * 60;
@@ -269,15 +265,8 @@ arith_uint256 CalculateASERT(const arith_uint256 &refTarget,
     return nextTarget;
 }
 
-
 static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
-
-static CBigNum bnProofOfWorkLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
-static CBigNum bnProofOfStakeLimitTestNet(ArithToUint256(~UintToArith256(uint256()) >> 20));
-
-// Debug flag for Magi
-static bool fDebug = true; // Set via true or false
 
 #define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
 int64_t GetTargetSpacingWork(int nHeight)
@@ -380,7 +369,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     if (nWeightTot < 1) {
         nWeightTot = 1;
     }
-    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
+//    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
 
     bnAverage /= nWeightTot;
 
