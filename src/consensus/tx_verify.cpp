@@ -15,7 +15,6 @@
 #include <validation.h>   // GetCoinAge()
 
 #include <util/moneystr.h>
-#include <inttypes.h>
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
@@ -184,7 +183,6 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
 
 // Bypass for early transactions during reindex
 if (coin.nTime < nBypass) {
-//    LogPrintf("Consensus::CheckTxInputs() : Bypassed PoS check for early block time=%" PRId64 "\n", coin.nTime);
     return true;
     // continue with normal validation or return success
 }
