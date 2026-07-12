@@ -1935,7 +1935,6 @@ static int64_t num_blocks_total = 0;
 // These checks can only be done when all previous block have been added.
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
-    // 1. Core structural calculations required to rebuild the index database
     unsigned int nEntropyBit = GetStakeEntropyBit(block);
 
     uint64_t nStakeModifier = 0;
@@ -1950,7 +1949,7 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
         hashProofOfStake = block.GetHash(); 
     }
 
-    // Compute nStakeModifierChecksum begin
+    // compute nStakeModifierChecksum begin
     unsigned int nFlagsBackup      = pindex->nFlags;
     uint64_t nStakeModifierBackup  = pindex->nStakeModifier;
     uint256 hashProofOfStakeBackup = pindex->hashProofOfStake;
@@ -1967,11 +1966,12 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
     pindex->nStakeModifier   = nStakeModifierBackup;
     pindex->hashProofOfStake = hashProofOfStakeBackup;
     // compute nStakeModifierChecksum end
+    if (pindex->nHeight > 0) {
+        if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
+            return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
+    }
 
-    if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
-        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
-
-    // 3. Time-based bypass for early blocks during reindexing
+    //  Time-based bypass for early blocks during reindexing
     if (block.GetBlockTime() < nBypass) {
         if (fJustCheck)
             return true;
