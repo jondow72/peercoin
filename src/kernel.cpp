@@ -19,6 +19,7 @@
 #include <index/txindex.h>
 
 #include <boost/assign/list_of.hpp>
+#include <../crypto/magimath.h>
 
 using namespace std;
 
