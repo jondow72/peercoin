@@ -269,15 +269,18 @@ arith_uint256 CalculateASERT(const arith_uint256 &refTarget,
 static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 
-static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
 static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
 
-#define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
+// Always returns 4-minute work spacing for height > 5M
 int64_t GetTargetSpacingWork(int nHeight)
 {
-    return ( (nHeight >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) ? 
-        nTargetSpacingV3Work : nTargetSpacingWork );
+    return nTargetSpacingV3Work;
 }
+
+// Always returns 96 for height > 5M
+inline unsigned int GetStakeTargetSpacing(int nHeight) { return 96; }
+
+
 // Debug flag for Magi
 static bool fDebug = true; // Set via true or false
 static bool fDebugMagiPoS = true; // Set via true or false
@@ -291,11 +294,6 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
     const Consensus::Params& consensusParams = Params().GetConsensus();
 
     arith_uint256 bnTargetLimit = UintToArith256(consensusParams.powLimit);
-
-    if (fProofOfStake) {
-        // Use your PoS limit if defined, otherwise fallback
-        // bnTargetLimit = bnProofOfStakeLimit;   // uncomment if you have this global
-    }
 
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == nullptr)
@@ -313,23 +311,19 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
 
     if (nActualSpacing < 0)
     {
-        if (IsProtocolV3(pindexLast->nHeight + 1))
-        {
-            int nBlks = 1;
-            do {
-                pindexPrevPrev = GetLastBlockIndex(pindexPrevPrev->pprev, fProofOfStake);
-                if (pindexPrevPrev->pprev == nullptr) break;
-                nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-                ++nBlks;
-            } while ((nActualSpacing < 0) && (nBlks <= HEIGHT_LOOKUP_DEPTH));
+        // Removed IsProtocolV3 check: this logic is now executed unconditionally
+        int nBlks = 1;
+        do {
+            pindexPrevPrev = GetLastBlockIndex(pindexPrevPrev->pprev, fProofOfStake);
+            if (pindexPrevPrev->pprev == nullptr) break;
+            nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+            ++nBlks;
+        } while ((nActualSpacing < 0) && (nBlks <= HEIGHT_LOOKUP_DEPTH));
 
-            if (nActualSpacing < 0) 
-                nActualSpacing = 1;
-            else
-                nActualSpacing = nActualSpacing / nBlks;
-        } 
-        else
+        if (nActualSpacing < 0) 
             nActualSpacing = 1;
+        else
+            nActualSpacing = nActualSpacing / nBlks;
     } 
     else if (nActualSpacing > nTargetTimespan)
         nActualSpacing = nTargetTimespan;
@@ -342,9 +336,8 @@ unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProof
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
 
-    if (IsProtocolV3(pindexLast->nHeight + 1) && (bnNew <= 0 || bnNew > bnTargetLimit))
-        bnNew = bnTargetLimit;
-    else if (bnNew > bnTargetLimit)
+    // Removed IsProtocolV3 check: directly enforcing the upper and lower limits 
+    if (bnNew <= 0 || bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
 
     if (fDebugMagiPoS)
