@@ -14,8 +14,8 @@
 #include <chainparams.h>
 #include <kernel.h>
 #include <atomic>
-//#include <../crypto/magimath.h>
-//#include <inttypes.h>
+#include <../crypto/magimath.h>
+#include <inttypes.h>
 
 static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
 static int64_t nDAAHalfLife = 24 * 60 * 60;
@@ -268,7 +268,7 @@ arith_uint256 CalculateASERT(const arith_uint256 &refTarget,
 
 static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
-
+static const int64_t nTargetTimespan = 60 * 30;   // 30 min
 static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
 
 // Always returns 4-minute work spacing for height > 5M
