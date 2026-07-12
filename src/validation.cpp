@@ -1385,24 +1385,9 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 }
 
 //------------------------------------------------------------------------------------------
-
-
-//int64_t nChainStartTime = 1407209706;
-
-int nBestHeight = -1;
-
-CBigNum bnBestChainTrust = 0;
-CBigNum bnBestInvalidTrust = 0;
+// magi
 uint256 hashBestChain = uint256();  // Explicitly constructs a zero-initialized uint256
 CBlockIndex* pindexBest = NULL;
-int64_t nTimeBestReceived = 0;
-
-
-
-// Debug flag for Magi 
-static bool fDebug = true; // Set via true or false
-static bool fDebugMagi = true; // Set via true or false
-static bool fDebugMagiPoS = true; // Set via true or false
 
 int64_t GetProofOfWorkReward(unsigned int nBits, uint32_t nTime)
 {
@@ -1439,43 +1424,6 @@ if (nTime < 1764975810) return 112500 * COIN; // blocktime 5 million
 
     return nSubsidy;
 }
-/*
-// Debug flag for Magi 
-static bool fDebug = true; // Set via true or false
-//static bool fDebugMagi = true; // Set via true or false
-static bool fDebugMagiPoS = true; // Set via true or false
-
-double GetAnnualInterestV2(int64_t nNetWorkWeit, double rMaxAPR)
-{
-    double rAPR, rWeit = 500000.;  // Higher threshold for mature chain
-    // if (fTestNet) return GetAnnualInterest_TestNet(nNetWorkWeit, rMaxAPR);
-    rAPR = ( ( 2. / ( 1. + exp_n(1. / (nNetWorkWeit / rWeit + 1.)) ) - 0.53788 ) * rMaxAPR 
-           / ( 2. / ( 1. + exp_n(1. / (rWeit + 1.)) ) - 0.53788 ) );
-    if (fDebugMagiPoS) LogPrintf("@PoS-APRV2 rAPR = %f\n", rAPR);
-    return rAPR;
-}
-
-// miner's coin stake reward based on nBits and coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, CBlockIndex* pindex) {
-    if (!pindex) return nFees;  // Fallback: No context = no mint
-
-    int64_t nNetWorkWeit = GetPoSKernelPS(pindex);
-    double rAPR = GetAnnualInterestV2(nNetWorkWeit, MAX_MAGI_PROOF_OF_STAKE);
-
-    // Annual to per-block: *33 / (365*33 +8) ≈ /365 (daily), with 33=~1 week? (tune if needed)
-    int64_t nSubsidy = nCoinAge * rAPR * COIN * 33 / (365 * 33 + 8);
-
-    if (fDebug) LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%" PRId64 " nBits=%08x\n", 
-                          FormatMoney(nSubsidy).c_str(), nCoinAge, pindex->nBits);
-
-    if (fDebug && fDebugMagiPoS) LogPrintf("@@GPoSR nHeight = %d, nSubsidy = %" PRId64 ", nCoinAge = %" PRId64 ", rAPR = %f\n", 
-                pindex->nHeight, nSubsidy / COIN, nCoinAge, rAPR);
-
-    return nSubsidy + nFees;
-}
-*/
-
-//------------------------------------------------------------------------------------------
 
 // peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, uint32_t nTime, uint64_t nMoneySupply)
