@@ -128,6 +128,7 @@ double GetDifficulty(const CBlockIndex* blockindex, const CBlockIndex* tip)
 }
 
 // Magi-specific functions
+int nBestHeight = -1;
 extern CBlockIndex* pindexBest;
 static bool fDebugMagi = false;
 double GetMagiDifficulty(const CBlockIndex* blockindex)
