@@ -3606,13 +3606,15 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader>& headers)
  */
 static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
 {
-    // 1. Establish the absolute critical variables for the block index engine
     AssertLockHeld(::cs_main);
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
 
-    // 2. Perform your required checkpoint checks
+    // Check against checkpoints
     if (chainman.m_options.checkpoints_enabled) {
+        // Don't accept any forks from the main chain prior to last checkpoint.
+        // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in our
+        // BlockIndex().
         const CBlockIndex* pcheckpoint = blockman.GetLastCheckpoint(chainman.GetParams().Checkpoints());
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrintf("ERROR: %s: forked chain older than last checkpoint (height %d)\n", __func__, nHeight);
@@ -3620,23 +3622,27 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         }
     }
 
-    // 3. Time-based bypass (Safe for reindexing now because nHeight is locked in)
+    // Time-based bypass (Safe for reindexing now because nHeight is locked in)
     if (block.GetBlockTime() < nBypass) {
         return true; 
     }
 
-    // 4. Standard validation rules (Only executed for blocks newer than mid-2026)
+    // Check proof of work or proof-of-stake
     const Consensus::Params& consensusParams = chainman.GetConsensus();
     if (block.nBits != GetNextTargetRequired(pindexPrev, block.nFlags & CBlockIndex::BLOCK_PROOF_OF_STAKE, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work/stake");
 
+    // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + (IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9) < pindexPrev->GetBlockTime())
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "time-too-old", "block's timestamp is too early");
 
+    // Check timestamp
     if (block.Time() > now + std::chrono::seconds{(IsProtocolV09(block.GetBlockTime()) ? MAX_FUTURE_BLOCK_TIME : MAX_FUTURE_BLOCK_TIME_PREV9)}) {
         return state.Invalid(BlockValidationResult::BLOCK_TIME_FUTURE, "time-too-new", "block timestamp too far in the future");
     }
 
+    // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
+    // check for version 2, 3 and 4 upgrades
     if ((block.nVersion < 2 && IsProtocolV06(pindexPrev)) ||
         (block.nVersion < 4 && IsProtocolV12(pindexPrev)) ||
         (block.nVersion < 5 && IsProtocolV14(pindexPrev)) ||
