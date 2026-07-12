@@ -1935,20 +1935,72 @@ static int64_t num_blocks_total = 0;
 // These checks can only be done when all previous block have been added.
 bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& state, CBlockIndex* pindex, bool fJustCheck, Chainstate& chainstate)
 {
-    // Time-based bypass for early blocks (better than height in some cases)
-    if (block.GetBlockTime() < nBypass) {   // Your 5 million block timestamp
-//        LogPrintf("PeercoinContextualBlockChecks() : Bypassed PoS check for block %d\n", pindex->nHeight);
+    // 1. Core structural calculations required to rebuild the index database
+    unsigned int nEntropyBit = GetStakeEntropyBit(block);
+
+    uint64_t nStakeModifier = 0;
+    bool fGeneratedStakeModifier = false;
+    if (!ComputeNextStakeModifier(pindex, nStakeModifier, fGeneratedStakeModifier, chainstate))
+        return error("ConnectBlock() : ComputeNextStakeModifier() failed");
+
+    // Extract the real proof-of-stake hash from the block data if available
+    uint256 hashProofOfStake = uint256();
+    if (block.IsProofOfStake() && block.vtx.size() > 1) {
+        // Compute or extract the block's existing proof-of-stake hash identifier
+        hashProofOfStake = block.GetHash(); 
+    }
+
+    // Compute nStakeModifierChecksum begin
+    unsigned int nFlagsBackup      = pindex->nFlags;
+    uint64_t nStakeModifierBackup  = pindex->nStakeModifier;
+    uint256 hashProofOfStakeBackup = pindex->hashProofOfStake;
+
+    if (!pindex->SetStakeEntropyBit(nEntropyBit))
+        return error("ConnectBlock() : SetStakeEntropyBit() failed");
+    pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+    pindex->hashProofOfStake = hashProofOfStake;
+
+    unsigned int nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
+
+    // Undo temporary pindex fields
+    pindex->nFlags           = nFlagsBackup;
+    pindex->nStakeModifier   = nStakeModifierBackup;
+    pindex->hashProofOfStake = hashProofOfStakeBackup;
+    // Compute nStakeModifierChecksum end
+
+    // 2. Enforce Stake Modifier Checkpoints to match old hardcoded chain rules
+    if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
+        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
+
+    // 3. Time-based bypass for early blocks during reindexing
+    if (block.GetBlockTime() < nBypass) {
+        if (fJustCheck)
+            return true;
+
+        // Repopulate structural block index properties from the blk.dat file data
+        if (block.IsProofOfStake() && block.vtx.size() > 1) {
+            pindex->prevoutStake = block.vtx[1]->vin[0].prevout;
+            pindex->nStakeTime = block.vtx[1]->nTime;
+        }
+        pindex->hashProofOfStake = hashProofOfStake; 
+        
+        if (!pindex->SetStakeEntropyBit(nEntropyBit))
+            return error("ConnectBlock() : SetStakeEntropyBit() failed");
+            
+        pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+        pindex->nStakeModifierChecksum = nStakeModifierChecksum;
+        
+        // Write the data to the local disk index database
+        chainstate.m_blockman.m_dirty_blockindex.insert(pindex); 
         return true;
     }
 
-    uint256 hashProofOfStake = uint256();
-    // peercoin: verify hash target and signature of coinstake tx
+    // 4. Post-Bypass heavy live validation (Only runs if a block is newer than mid-2026)
     if (block.IsProofOfStake() && !CheckProofOfStake(state, pindex->pprev, block.vtx[1], block.nBits, hashProofOfStake, block.vtx[1]->nTime ? block.vtx[1]->nTime : block.nTime, chainstate)) {
         LogPrintf("WARNING: %s: check proof-of-stake failed for block %s\n", __func__, block.GetHash().ToString());
-        return false; // do not error here as we expect this during initial block download
+        return false; 
     }
 
-    // peercoin: check for duplicity of stake
     if (block.IsProofOfStake()) {
         std::pair<COutPoint, unsigned int> proofOfStake = block.GetProofOfStake();
         if (pindex->IsProofOfStake() && proofOfStake.first == pindex->prevoutStake) {
@@ -1961,41 +2013,9 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
         }
     }
 
-    // peercoin: compute stake entropy bit for stake modifier
-    unsigned int nEntropyBit = GetStakeEntropyBit(block);
-
-    // peercoin: compute stake modifier
-    uint64_t nStakeModifier = 0;
-    bool fGeneratedStakeModifier = false;
-    if (!ComputeNextStakeModifier(pindex, nStakeModifier, fGeneratedStakeModifier, chainstate))
-        return error("ConnectBlock() : ComputeNextStakeModifier() failed");
-
-    // compute nStakeModifierChecksum begin
-    unsigned int nFlagsBackup      = pindex->nFlags;
-    uint64_t nStakeModifierBackup  = pindex->nStakeModifier;
-    uint256 hashProofOfStakeBackup = pindex->hashProofOfStake;
-
-    // set necessary pindex fields
-    if (!pindex->SetStakeEntropyBit(nEntropyBit))
-        return error("ConnectBlock() : SetStakeEntropyBit() failed");
-    pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
-    pindex->hashProofOfStake = hashProofOfStake;
-
-    unsigned int nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
-
-    // undo pindex fields
-    pindex->nFlags           = nFlagsBackup;
-    pindex->nStakeModifier   = nStakeModifierBackup;
-    pindex->hashProofOfStake = hashProofOfStakeBackup;
-    // compute nStakeModifierChecksum end
-
-    if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
-        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
-
     if (fJustCheck)
         return true;
 
-    // write everything to index
     if (block.IsProofOfStake())
     {
         pindex->prevoutStake = block.vtx[1]->vin[0].prevout;
@@ -2007,7 +2027,7 @@ bool PeercoinContextualBlockChecks(const CBlock& block, BlockValidationState& st
         return error("ConnectBlock() : SetStakeEntropyBit() failed");
     pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
     pindex->nStakeModifierChecksum = nStakeModifierChecksum;
-    chainstate.m_blockman.m_dirty_blockindex.insert(pindex); // queue a write to disk
+    chainstate.m_blockman.m_dirty_blockindex.insert(pindex); 
 
     return true;
 }
