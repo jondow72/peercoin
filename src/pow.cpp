@@ -14,6 +14,8 @@
 #include <chainparams.h>
 #include <kernel.h>
 #include <atomic>
+//#include <../crypto/magimath.h>
+//#include <inttypes.h>
 
 static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
 static int64_t nDAAHalfLife = 24 * 60 * 60;
@@ -267,11 +269,94 @@ arith_uint256 CalculateASERT(const arith_uint256 &refTarget,
 static CBigNum bnProofOfWorkLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 static CBigNum bnProofOfStakeLimit(ArithToUint256(~UintToArith256(uint256()) >> 20));
 
+static const int64_t nTargetSpacingWork = 2 * 90; // 3 min PoW block spacing
+static const int64_t nTargetSpacingV3Work = 60 * 4;   // 4 min
+
 #define HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT 1482000
 int64_t GetTargetSpacingWork(int nHeight)
 {
     return ( (nHeight >= HEIGHT_DIFF_ADJ_TARGET_SPACKING_WORK_V3_INIT) ? 
         nTargetSpacingV3Work : nTargetSpacingWork );
+}
+// Debug flag for Magi
+static bool fDebug = true; // Set via true or false
+static bool fDebugMagiPoS = true; // Set via true or false
+
+#define HEIGHT_LOOKUP_DEPTH 10
+unsigned int GetNextTargetRequired_v1(const CBlockIndex* pindexLast, bool fProofOfStake)
+{
+    if (pindexLast == nullptr)
+        return UintToArith256(Params().GetConsensus().powLimit).GetCompact();
+
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+
+    arith_uint256 bnTargetLimit = UintToArith256(consensusParams.powLimit);
+
+    if (fProofOfStake) {
+        // Use your PoS limit if defined, otherwise fallback
+        // bnTargetLimit = bnProofOfStakeLimit;   // uncomment if you have this global
+    }
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
+    if (pindexPrev->pprev == nullptr)
+        return bnTargetLimit.GetCompact();
+
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
+    if (pindexPrevPrev->pprev == nullptr)
+        return bnTargetLimit.GetCompact();
+
+    int64_t nTargetSpacing = fProofOfStake 
+                           ? GetStakeTargetSpacing(pindexLast->nHeight + 1) 
+                           : GetTargetSpacingWork(pindexLast->nHeight + 1);
+
+    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+
+    if (nActualSpacing < 0)
+    {
+        if (IsProtocolV3(pindexLast->nHeight + 1))
+        {
+            int nBlks = 1;
+            do {
+                pindexPrevPrev = GetLastBlockIndex(pindexPrevPrev->pprev, fProofOfStake);
+                if (pindexPrevPrev->pprev == nullptr) break;
+                nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+                ++nBlks;
+            } while ((nActualSpacing < 0) && (nBlks <= HEIGHT_LOOKUP_DEPTH));
+
+            if (nActualSpacing < 0) 
+                nActualSpacing = 1;
+            else
+                nActualSpacing = nActualSpacing / nBlks;
+        } 
+        else
+            nActualSpacing = 1;
+    } 
+    else if (nActualSpacing > nTargetTimespan)
+        nActualSpacing = nTargetTimespan;
+
+    arith_uint256 bnNew;
+    bnNew.SetCompact(pindexPrev->nBits);
+
+    int64_t nInterval = nTargetTimespan / nTargetSpacing;
+
+    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= ((nInterval + 1) * nTargetSpacing);
+
+    if (IsProtocolV3(pindexLast->nHeight + 1) && (bnNew <= 0 || bnNew > bnTargetLimit))
+        bnNew = bnTargetLimit;
+    else if (bnNew > bnTargetLimit)
+        bnNew = bnTargetLimit;
+
+    if (fDebugMagiPoS)
+    {
+        printf("GetNextTargetRequired_v1 RETARGET height=%d\n", pindexLast->nHeight + 1);
+        printf("nTargetSpacing = %" PRId64 " nActualSpacing = %" PRId64 " nInterval = %" PRId64 "\n", 
+               nTargetSpacing, nActualSpacing, nInterval);
+        printf("Before: %08x\n", pindexPrev->nBits);
+        printf("After:  %08x\n", bnNew.GetCompact());
+    }
+
+    return bnNew.GetCompact();
 }
 
 #define MQW_TIME_COEFF 1.0
@@ -368,7 +453,7 @@ unsigned int MagiQuantumWave_v2(const CBlockIndex* pindexLast, bool fProofOfStak
     if (nWeightTot < 1) {
         nWeightTot = 1;
     }
-//    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
+    if (fDebug) printf("nWeightTot: %ld\n", nWeightTot);
 
     bnAverage /= nWeightTot;
 
